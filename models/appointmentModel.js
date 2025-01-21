@@ -43,8 +43,8 @@ var appointmentSchema = new mongoose.Schema({
     },
     feedback:{
         rating: {type:Number},
-        feedback:{type:String},
-        email:{type:String}
+        comment:{type:String},
+        email:{type:String},
     }
     
     
