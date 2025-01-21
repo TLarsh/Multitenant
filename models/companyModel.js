@@ -21,6 +21,10 @@ var companySchema = new mongoose.Schema({
     address:{
         type:String
     },
+    admin:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
 }, {
     timestamps:true
 });
