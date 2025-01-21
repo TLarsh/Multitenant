@@ -14,7 +14,7 @@ const createAppointment = asyncHandler(async (req, res) => {
 const totalAppointments = asyncHandler (async (req, res) => {
     
     try {
-        const appointments = await appointmentModel.count();
+        const appointments = await appointmentModel.countDocuments();
         res.status(200).json({total : appointments});
     } catch (error) {
         throw new Error(error);

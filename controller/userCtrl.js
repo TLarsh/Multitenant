@@ -77,7 +77,7 @@ const getallUsers = asyncHandler ( async (req, res) => {
 
 const totalUsers = asyncHandler(async (req, res) => {
     try {
-        const users = await User.count();
+        const users = await User.countDocuments();
         res.status(200).json({total:users})
 
     } catch(error) {

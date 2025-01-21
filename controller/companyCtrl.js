@@ -13,7 +13,7 @@ const createCompany = asyncHandler(async (req, res) => {
 
 const totalCompanies = asyncHandler(async (req, res) => {
     try {
-        const companies = await companyModel.count();
+        const companies = await companyModel.countDocuments();
         res.status(200).json({total:companies})
 
     } catch(error) {
