@@ -18,9 +18,7 @@ app.use(morgan("dev"));
 app.use (bodyParser.json());
 app.use(cookieParser())
 app.use (bodyParser.urlencoded({extended:false}));
-app.get('/', (req, res) => {
-    res.send('Hello, world!');
-  });
+
 app.use('/api/user', authRouter);
 app.use('/api/appointment', appointmentRouter);
 app.use('/api/company', companyRouter);
