@@ -15,6 +15,10 @@ var logSchema = new mongoose.Schema({
     status:{
         type:String,
     },
+    // timestamp:{
+    //     type:Date,
+    //     default:Date.now,
+    // },
     
     description:{
         type:String

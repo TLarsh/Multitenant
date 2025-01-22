@@ -3,6 +3,7 @@ const dbConnect = require('./config/dbConnect');
 const authRouter = require('./routes/authRoute');
 const appointmentRouter = require('./routes/appointmentRoute');
 const companyRouter = require('./routes/companyRoute');
+const logRouter = require('./routes/logRoute');
 const app = express();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser')
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api/user', authRouter);
 app.use('/api/appointment', appointmentRouter);
 app.use('/api/company', companyRouter);
+app.use('/api/log', logRouter);
 app.use("/", (req, res)=>{
     res.send('hello at server')
 });

@@ -1,6 +1,12 @@
+
+
 const express = require('express');
+const { getAllLogs, getAcompanyLogs } = require('../controller/logCtrl');
+const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 const router = express.Router();
-const { authMiddleware, isAdmin, } = require('../middlewares/authMiddleware');
+
+router.get('', authMiddleware, isAdmin, getAllLogs);
 
 
-router.get('', authMiddleware, isAdmin, getLogs)
+
+module.exports = router;
