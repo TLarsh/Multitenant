@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt')
 
 
 
-var companySchema = new mongoose.Schema({
+var staffSchema = new mongoose.Schema({
     name:{
         type:String,
         required:true,  
@@ -24,11 +24,13 @@ var companySchema = new mongoose.Schema({
     },
     
     address:{
-        type:String
+        type:String,
     },
-    admin:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+    appointment:{
+        type:String,
+    },
+    completedAppointment:{
+        type:Number,
     },
     createdBy:{
         type: mongoose.Schema.Types.ObjectId,
@@ -45,4 +47,4 @@ var companySchema = new mongoose.Schema({
 
 
 //Export the model
-module.exports = mongoose.model('Company', companySchema);
+module.exports = mongoose.model('Staff', staffSchema);

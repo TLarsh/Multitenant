@@ -3,10 +3,12 @@ const mongoose = require('mongoose');
 
 var appointmentSchema = new mongoose.Schema({
     interpreter:{
-        type:String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     },
     client:{
-        type:String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     },
 
     email:{
@@ -20,6 +22,11 @@ var appointmentSchema = new mongoose.Schema({
     note:{
         type:String,
     },
+    status:{
+        type:String,
+        enum:['scheduled','completed','canceled'],
+        default:'scheduled'
+    },
     date:{
         type:String,
         required:true,
@@ -31,21 +38,20 @@ var appointmentSchema = new mongoose.Schema({
         
     },
     created_by:{
-        type:String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     },
     
     address:{
         type:String
     },
     
-    note:{
-        type:String
-    },
     feedback:{
         rating: {type:Number},
         comment:{type:String},
         email:{type:String},
-    }
+        ratedBy:{type:mongoose.Schema.Types.ObjectId, ref:"User"}
+    },
     
     
 },

@@ -3,8 +3,7 @@ const bcrypt = require('bcrypt')
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
     username:{
-        type:String,
-        required:true,  
+        type:String,  
     },
     email:{
         type:String,
@@ -14,7 +13,7 @@ var userSchema = new mongoose.Schema({
     phone:{
         type:String,
         required:true,
-        unique:true,
+        // unique:true,
     },
     password:{
         type:String,
@@ -30,6 +29,15 @@ var userSchema = new mongoose.Schema({
     },
     
     address:{
+        type:String
+    },
+    appointments:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Appointment"
+        }
+    ],
+    createdBy:{
         type:String
     },
         
