@@ -5,7 +5,7 @@ const adminRouter = require('./routes/adminRouter');
 const companyRouter = require('./routes/companyRoute');
 const interpreterRouter = require('./routes/interpreterRoute');
 const clientRouter = require('./routes/clientRoute');
-const logRouter = require('./routes/logRoute');
+// const logRouter = require('./routes/logRoute');
 const app = express();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -28,10 +28,10 @@ app.use('/api/admin', adminRouter);
 app.use('/api/company', companyRouter);
 app.use('/api/interpreter', interpreterRouter);
 app.use('/api/client', clientRouter);
-app.use('/api/log', logRouter);
-// app.use("/", (req, res)=>{
-//     res.send('hello at server')
-// });
+// app.use('/api/log', logRouter);
+app.use("/", (req, res)=>{
+    res.send('hello at server')
+});
 
 // error handlers
 app.use(notFound);
