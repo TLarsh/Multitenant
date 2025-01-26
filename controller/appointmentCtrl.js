@@ -4,36 +4,43 @@ const Client = require("../models/clientModel");
 const Interpreter = require("../models/interpreterModel");
 const User = require("../models/userModel");
 
-// Api to create appointment by the company
+
+// creates appointment and lists the appointmens to the user appointments array
+
 const createAppointment = asyncHandler(async (req, res) => {
-  const interpreterId = req.body.interpreter;
-  const interpreterEmail = interpreterId;
-  const clientId = req.body.client;
-  const clientEmail = clientId.email;
-  console.log(interpreterId);
-  // try {
-  //     const newAppointment = await Appointment.create({...req.body, creadedBy:req.user});
-  //     const interpreterAppointment = await User.findByIdAndUpdate(interpreterId, {
-  //         $push : {appointments:newAppointment.id},
-  //     },
-  //     {new:true});
-  //     const interpreterAppointmentModel = await Interpreter.findOneAndUpdate({email:interpreterEmail}, {
-  //         $push : {appointments:newAppointment.id},
-  //     },
-  //     {new:true});
-  //     const clientAppointment = await User.findByIdAndUpdate(clientId, {
-  //         $push : {appointments:newAppointment.id},
-  //     },
-  //     {new:true});
-  //     const clientAppointmentModel = await Client.findOneAndUpdate({email:clientEmail}, {
-  //         $push : {appointments:newAppointment.id},
-  //     },
-  //     {new:true});
-  //     res.status(201).json({newAppointment});
-  // } catch (error) {
-  //     throw new Error(error);
-  // }
-});
+  const {interpreter, client, email, address, phone, date, time, note, location } = req.body;  
+  console.log(interpreter)
+  try {
+    const clientId = await User.findById(client);
+    console.log(clientId)
+    const interpreterId = await User.findById(interpreter)
+    console.log(interpreterId)
+    if (!clientId) return res.status(400).json({error:"Client not found"});
+    if (!interpreterId) return res.status(400).json({error:"Interpreter not found"});
+    const newAppointment = new Appointment({
+      interpreter:interpreter,
+      client:client,
+      email:email,
+      address:address,
+      phone:phone,
+      date:date,
+      time:time,
+      note:note,
+      location:location,
+    });
+    console.log(newAppointment)
+    newAppointment.save();
+    clientId.appointments.push(newAppointment._id);
+    interpreterId.appointments.push(newAppointment._id);
+    await clientId.save();
+    await interpreterId.save();
+
+    res.status(200).json({message:"Appointment successfully created", 
+    appointment:newAppointment});
+  } catch (error) {
+    throw new Error(error)
+  }
+})
 
 // total appoinments to be seen by the super admin
 const totalAppointments = asyncHandler(async (req, res) => {
@@ -45,6 +52,7 @@ const totalAppointments = asyncHandler(async (req, res) => {
   }
 });
 
+// all appointments for the user in current session
 const myAppointments = asyncHandler(async (req, res) => {
   const email = req.user;
 

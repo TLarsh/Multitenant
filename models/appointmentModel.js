@@ -4,11 +4,13 @@ const mongoose = require('mongoose');
 var appointmentSchema = new mongoose.Schema({
     interpreter:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        required: true,
     },
     client:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        required:true
     },
 
     email:{
