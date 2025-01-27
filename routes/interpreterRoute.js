@@ -1,9 +1,11 @@
 const express = require('express');
-const { getUpcomingAppointments, getPastAppointments, markAsComplete, reshAppoint, } = require('../controller/appointmentCtrl');
+const { getUpcomingAppointments, getPastAppointments, markAsComplete, reshAppoint, getClientAppointments, } = require('../controller/appointmentCtrl');
 const { authMiddleware, isInterpreter } = require('../middlewares/authMiddleware');
 router = express.Router();
 
 router.get('/upcoming-appointments', authMiddleware, isInterpreter, getUpcomingAppointments);
+router.get('/view-appointments', authMiddleware, isInterpreter, getClientAppointments);
+
 // router.post('/reschedule-appointment', authMiddleware, rescheduleAppointment);
 router.get('/past-appointments', authMiddleware, isInterpreter, getPastAppointments);
 router.put('/mark-complete/:id', authMiddleware, isInterpreter, markAsComplete);

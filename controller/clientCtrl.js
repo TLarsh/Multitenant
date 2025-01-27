@@ -12,7 +12,7 @@ const addClient = asyncHandler(async (req, res) => {
         });
         res.status(200).json({message:"Client successfully created", client:client, role_detail:user})
     } catch (error) {
-        throw new Error(error)
+        res.status(500).json({error: "Error adding client"});
     }
 });
 
@@ -24,11 +24,10 @@ const getAllClients = asyncHandler(async (req, res) => {
         const clients = await Client.find({createdBy:id})
         res.status(200).json({clients:clients})
     } catch (error) {
-        throw new Error(error)
+        res.status(500).json({error: "Error fetching clients"});
     }
 });
 
 
 
 module.exports = { addClient, getAllClients }
-asyncHandler

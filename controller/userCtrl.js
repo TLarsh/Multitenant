@@ -26,7 +26,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     const {email, password} = req.body;
     console.log(email,password);
     const findUser = await User.findOne({email:email});
-
+    console.log(findUser)
     // CHECK FOR THE EXISTENCE OF USER
     if  (findUser && await findUser.isPasswordMatched(password)) {
         const refreshToken = await generateRefreshToken(findUser?.id);
@@ -60,7 +60,8 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
         });
         
     }else{
-        throw new Error("Invalid Credentials");
+        // console.log(error)
+        res.status(500).json({error:"Could not find user"});
     }
 });
 
@@ -81,7 +82,8 @@ const totalUsers = asyncHandler(async (req, res) => {
         res.status(200).json({total:users})
 
     } catch(error) {
-        throw new Error(error)
+        // throw new Error(error)
+        res.status(500).json({error:"Error finding total"})
     }
 });
 
@@ -92,7 +94,8 @@ const getaUser = asyncHandler (async (req, res) => {
         const user = await User.findById(id);
         res.json(user);
     } catch (error) {
-        throw new Error(error);
+        // throw new Error(error);
+        res.status(500).json("User not found")
     };
 });
 
@@ -103,7 +106,8 @@ const deleteaUser = asyncHandler (async (req, res) => {
         const deletedUser = await User.findByIdAndDelete(id);
         res.json(deletedUser);
     } catch (error) {
-        throw new Error(error);
+        // throw new Error(error);
+        res.status(500).json({error:"Error deleting user"})
     };
 });
 

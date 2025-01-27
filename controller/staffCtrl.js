@@ -8,14 +8,13 @@ const addStaff = asyncHandler(async (req, res) => {
         const user = await User.create({
             ...req.body,
             role : 'staff',
-            company : req.user
+            
         });
         res.status(200).json({message:"Staff successfully created", staff:staff, role_detail:user})
     } catch (error) {
-        throw new Error(error)
+        res.status(500).json({error: "Error adding staff"});
     }
 });
 
 
 module.exports = { addStaff, }
-asyncHandler

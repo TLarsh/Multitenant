@@ -7,7 +7,7 @@ const getAllLogs = asyncHandler ( async (req, res) => {
         const logs = await logModel.find();
         res.json(logs);
     } catch (error) {
-        throw new Error(error);
+      res.status(500).json({error: "Error fetching logs"});;
     };
 });
 

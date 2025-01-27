@@ -16,7 +16,7 @@ const createTimesheet = expressAsyncHandler(async(req, res) => {
         res.status(201).json({message: "Timesheet successfully created", 
         timesheet: newTimesheet});
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({error:"Error creating timesheet"});
     }
 });
 
@@ -27,7 +27,7 @@ const getTimesheets = asyncHandler(async (req, res) => {
         .populate("appointmentId", "details date");
         res.status(200).json(timesheets);
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({error:"Error fetching timesheets"});
     }
 });
 
@@ -43,7 +43,7 @@ const clockOut = asyncHandler (async (req, res) => {
         await timesheet.save();
         res.status(200).json({message:"Clock-out time successfully updated", timesheet})
     } catch (error) {
-        throw new Error(error)
+        res.status(500).json({error:"Error updating clock out time"})
     }
 });
 

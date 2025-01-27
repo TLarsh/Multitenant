@@ -19,7 +19,7 @@ const createCompany = asyncHandler(async (req, res) => {
         }, {new:true});
         res.status(200).json({message:'company successfully created',company:newCompany, role_details:admin});
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({error:"There is an error adding companny"});
     }
 });
 
@@ -28,20 +28,20 @@ const createCompany = asyncHandler(async (req, res) => {
 const getAllCompanies = asyncHandler(async (req, res) => {
     try {
         const companies = await Company.find();
-        res.status(200).json({companies:companies})
+        res.status(200).json({companies:companies});
 
     } catch(error) {
-        throw new Error(error)
+        res.status(500).json({error:"Error fetching all companies"})
     }
 });
 
 const totalCompanies = asyncHandler(async (req, res) => {
     try {
         const companies = await Company.countDocuments();
-        res.status(200).json({total:companies})
+        res.status(200).json({total:companies});
 
     } catch(error) {
-        throw new Error(error)
+        res.status(500).json({error:"Error fetching total"});
     }
 });
 

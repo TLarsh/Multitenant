@@ -16,7 +16,7 @@ const createInterpreter = asyncHandler(async (req, res) => {
         
         res.status(200).json({message:'interpreter successfully created', interpreter:newInterpreter, role_details:interpreter});
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({error: "Error adding interpreter"});
     }
 });
 
@@ -30,7 +30,7 @@ const getAllInterpreters = asyncHandler(async (req, res) => {
         const interpreters = await Interpreter.find({createdBy:id})
         res.status(200).json({interpreters:interpreters})
     } catch (error) {
-        throw new Error(error)
+        res.status(500).json({error: "Error fetching interpreters"});
     }
 });
 

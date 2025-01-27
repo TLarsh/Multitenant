@@ -38,7 +38,8 @@ const createAppointment = asyncHandler(async (req, res) => {
     res.status(200).json({message:"Appointment successfully created", 
     appointment:newAppointment});
   } catch (error) {
-    throw new Error(error)
+    // throw new Error(error)
+    res.status(500).json({error:"Error creating appointment"})
   }
 })
 
@@ -48,7 +49,9 @@ const totalAppointments = asyncHandler(async (req, res) => {
     const appointments = await Appointment.countDocuments();
     res.status(200).json({ total: appointments });
   } catch (error) {
-    throw new Error(error);
+    // throw new Error(error);
+    res.status(500).json({error: "Error retrieving total appointments"});
+
   }
 });
 
@@ -88,8 +91,8 @@ const getClientAppointments = asyncHandler(async (req, res) => {
     });
     console.log(user)
   } catch (error) {
-    // res.status(500).json({error: "Error retrieving appointment"});
-    throw new Error(error)
+    res.status(500).json({error: "Error retrieving appointment"});
+    // throw new Error(error)
   }
 });
 
@@ -108,7 +111,7 @@ const rateAppointment = asyncHandler(async (req, res) => {
         
         if (alreadyRated) {
           
-          return res.status(400).json({error:'Already rated'});
+          res.status(400).json({error:'Already rated'});
         //   res.json({message:"already rated"});
         } else {
           const rateAppointment = await Appointment.findByIdAndUpdate(
@@ -130,7 +133,8 @@ const rateAppointment = asyncHandler(async (req, res) => {
           res.json(rateAppointment);
         }
     } catch (error) {
-      throw new Error(error);
+      // throw new Error(error);
+      res.status(500).json({error: "Error giving feedback"});
     }
 });
 
@@ -139,9 +143,10 @@ const getUpcomingAppointments = asyncHandler(async (req,res) => {
     const currentDate = new Date();
     const upcomingAppointments = await Appointment.find({createdAt:{$gte:currentDate}})
     .sort("-date");
-    res.status(200).json(upcomingAppointments)
+    res.status(200).json(upcomingAppointments);
   } catch (error) {
-    throw new Error(error)
+    // throw new Error(error)
+    res.status(500).json({error: "Error retrieving upcoming appointments"});
   }
 });
 
@@ -173,7 +178,8 @@ const reshAppoint = asyncHandler( async (req, res) => {
     rescheduled_appointment:appointment});
     console.log(id);
   } catch (error) {
-    throw new Error(error);
+    // throw new Error(error);
+    res.status(500).json({error: "Error in appointment reschedule"});
   }
 });
 
@@ -183,7 +189,8 @@ const markAsComplete = asyncHandler(async (req, res) => {
     const appointment = await Appointment.findByIdAndUpdate(id, req.body, {new:true});
     res.status(200).json({message:"Marked as complete", completed_appointment:appointment});
   } catch (error) {
-    throw new Error(error)
+    // throw new Error(error)
+    res.status(500).json({error: "There is an error marking apointment as complete"});
   }
 })
 
