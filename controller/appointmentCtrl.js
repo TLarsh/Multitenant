@@ -108,7 +108,7 @@ const rateAppointment = asyncHandler(async (req, res) => {
         
         if (alreadyRated) {
           
-          res.status(400).json({error:'Already rated'});
+          return res.status(400).json({error:'Already rated'});
         //   res.json({message:"already rated"});
         } else {
           const rateAppointment = await Appointment.findByIdAndUpdate(
