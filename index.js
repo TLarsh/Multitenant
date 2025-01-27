@@ -5,6 +5,7 @@ const adminRouter = require('./routes/adminRouter');
 const companyRouter = require('./routes/companyRoute');
 const interpreterRouter = require('./routes/interpreterRoute');
 const clientRouter = require('./routes/clientRoute');
+const cors = require("cors")
 // const logRouter = require('./routes/logRoute');
 const app = express();
 const bodyParser = require('body-parser');
@@ -18,6 +19,7 @@ dbConnect();
 // app.use (express.json());
 // app.use(express.urlencoded({extended: true}));
 app.use(morgan("dev"));
+app.use(cors());
 app.use (bodyParser.json());
 app.use(cookieParser());
 app.use (bodyParser.urlencoded({extended:false}));

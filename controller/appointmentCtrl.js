@@ -66,6 +66,38 @@ const myAppointments = asyncHandler(async (req, res) => {
   }
 });
 
+
+
+const getClientAppointments = asyncHandler(async (req, res) => {
+  const {id} = req.user;
+  console.log(id)
+  try {
+    const user = await User.findById(id)
+    console.log(user)
+    if (!user) {
+      return res.json({error:"User not found"});
+    }
+    
+    const appointments = await Appointment.find({client:id})
+    .populate("interpreter", "username email")
+    .populate("client", "username email")
+    .sort({date:1});
+    res.status(200).json({
+      message:`Appointments for ${user.username}`,
+      appointments,
+    });
+    console.log(user)
+  } catch (error) {
+    // res.status(500).json({error: "Error retrieving appointment"});
+    throw new Error(error)
+  }
+});
+
+
+
+
+
+
 const rateAppointment = asyncHandler(async (req, res) => {
     const _id = req.user;
     console.log(_id)
@@ -162,6 +194,7 @@ module.exports = {
   rateAppointment,
   getUpcomingAppointments,
   getPastAppointments,
+  getClientAppointments,
   // rescheduleAppointment,
   markAsComplete,
   reshAppoint,
