@@ -224,15 +224,30 @@ const reshAppoint = asyncHandler( async (req, res) => {
 });
 
 const markAsComplete = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { appointmentId } = req.params;
+  const user = req.user;
+  const note = req.body;
   try {
-    const appointment = await Appointment.findByIdAndUpdate(id, req.body, {new:true});
-    res.status(200).json({message:"Marked as complete", completed_appointment:appointment});
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({error:"Appointment not found"});
+    }
+    if (appointment.interpreter.toString() !== user) {
+      return res.status(403).json({error:"Not authorized user to update this appointment"});
+    }
+    appointment.status = "completed";
+    if (note) {
+      appointment.note = note
+    }
+    await appointment.save();
+    res.status(200).json({message: "Marked as complete", completed_appointment:appointment})
   } catch (error) {
     // throw new Error(error)
     res.status(500).json({error: "There is an error marking apointment as complete"});
   }
-})
+
+  
+});
 
 module.exports = {
   createAppointment,

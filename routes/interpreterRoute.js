@@ -8,7 +8,7 @@ router.get('/view-appointments', authMiddleware, isInterpreter, getClientAppoint
 
 // router.post('/reschedule-appointment', authMiddleware, rescheduleAppointment);
 router.get('/past-appointments', authMiddleware, isInterpreter, getPastAppointments);
-router.put('/mark-complete/:id', authMiddleware, isInterpreter, markAsComplete);
+router.put('/mark-complete/:appointmentId', authMiddleware, isInterpreter, markAsComplete);
 router.put("/reschedule-appointment", authMiddleware, isInterpreter, reshAppoint);
 router.get('/view-appointments', authMiddleware, getInterpreterAppointments);
 
