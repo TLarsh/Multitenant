@@ -13,7 +13,7 @@ var userSchema = new mongoose.Schema({
     phone:{
         type:String,
         required:true,
-        // unique:true,
+        unique:true,
     },
     password:{
         type:String,
@@ -21,7 +21,7 @@ var userSchema = new mongoose.Schema({
     },
     role:{
         type:String,
-        enum:["admin","company_admin","interpretet","client",],
+        enum:["admin","company_admin","interpreter", "staff", "client",],
         default:"client",
     },
     isActive:{
@@ -39,7 +39,8 @@ var userSchema = new mongoose.Schema({
         }
     ],
     createdBy:{
-        type:String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     },
         
     refreshToken:{
@@ -55,6 +56,16 @@ var userSchema = new mongoose.Schema({
 userSchema.pre("save", async function(next){
     const salt = await bcrypt.genSaltSync(10);
     this.password = await bcrypt.hash(this.password, salt)
+});
+
+userSchema.pre("findOneAndDelete", async function(next) {
+    const userId = this.getQuery().id;
+    try {
+        await mongoose.model("Appointment").deleteMany({ $or: [{ client: userId }, { interpreter: userId }] });
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 userSchema.methods.isPasswordMatched = async function(enteredPassword) {

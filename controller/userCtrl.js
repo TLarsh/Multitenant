@@ -107,7 +107,7 @@ const deleteaUser = asyncHandler (async (req, res) => {
         res.json(deletedUser);
     } catch (error) {
         // throw new Error(error);
-        res.status(500).json({error:"Error deleting user"})
+        res.status(500).json({error:"Can't find user for delete"})
     };
 });
 

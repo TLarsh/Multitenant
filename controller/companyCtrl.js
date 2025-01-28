@@ -45,4 +45,5 @@ const totalCompanies = asyncHandler(async (req, res) => {
     }
 });
 
+
 module.exports = {createCompany, totalCompanies, getAllCompanies}

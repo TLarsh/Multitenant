@@ -8,15 +8,20 @@ mongoose = require("mongoose")
 const createInterpreter = asyncHandler(async (req, res) => {
     try {
         const newInterpreter = await Interpreter.create({...req.body, createdBy:req.user});
-        const interpreter = await User.create({
-            ...req.body,
+        const user = await User.create ({
+            email : req.body.email,
+            username : req.body.username,
+            password : req.body.password,
+            phone : req.body.phone,
             role : 'interpreter',
-            company : req.user
+            createdBy : req.user,
         });
+        console.log(user);
+        // await interpreter.save();
         
-        res.status(200).json({message:'interpreter successfully created', interpreter:newInterpreter, role_details:interpreter});
+        res.status(200).json({message:'interpreter successfully created', interpreter:newInterpreter, role_details:user});
     } catch (error) {
-        res.status(500).json({error: "Error adding interpreter"});
+        res.status(500).json(error);
     }
 });
 

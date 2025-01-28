@@ -11,7 +11,7 @@ router.get('/get-users', authMiddleware, getallUsers);
 router.get('/total', authMiddleware, isAdmin, totalUsers);
 router.get('/:id', authMiddleware, isAdmin, getaUser);
 router.delete('/:id', isAdmin, deleteaUser);
-router.put('/edit', authMiddleware, updateaUser);
+router.put('/:id', authMiddleware, updateaUser);
 router.put('/deactivate/:id', authMiddleware, isAdmin, deactivateUser);
 router.put('/activate/:id', authMiddleware, isAdmin, activateUser);
 

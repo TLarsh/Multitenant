@@ -55,22 +55,36 @@ const totalAppointments = asyncHandler(async (req, res) => {
   }
 });
 
-// all appointments for the user in current session
-const myAppointments = asyncHandler(async (req, res) => {
-  const email = req.user;
+// all appointments for interpreter in current session
+// const interpreterAppointments = asyncHandler(async (req, res) => {
+//   const { id } = req.user;
 
-  try {
-    const appointments = await Appointment.find({ interpreter: email });
-    // .populate('interpreter', 'fullname')
-    // .populate('client', 'name');
-    res.status(200).json({ appointments: appointments });
-  } catch (error) {
-    throw new Error(error);
-  }
-});
+//   try {
+//     const appointments = await Appointment.find({ interpreter: id });
+//     // .populate('interpreter', 'fullname')
+//     // .populate('client', 'name');
+//     res.status(200).json({ appointments: appointments });
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
+
+// // all appointments for client in current session
+// const clientAppointments = asyncHandler(async (req, res) => {
+//   const { id } = req.user;
+
+//   try {
+//     const appointments = await Appointment.find({ interpreter: id });
+//     // .populate('interpreter', 'fullname')
+//     // .populate('client', 'name');
+//     res.status(200).json({ appointments: appointments });
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
 
 
-
+// get appointments for client
 const getClientAppointments = asyncHandler(async (req, res) => {
   const {id} = req.user;
   console.log(id)
@@ -82,6 +96,32 @@ const getClientAppointments = asyncHandler(async (req, res) => {
     }
     
     const appointments = await Appointment.find({client:id})
+    .populate("interpreter", "username email")
+    .populate("client", "username email")
+    .sort({date:1});
+    res.status(200).json({
+      message:`Appointments for ${user.username}`,
+      appointments,
+    });
+    console.log(user)
+  } catch (error) {
+    res.status(500).json({error: "Error retrieving appointment"});
+    // throw new Error(error)
+  }
+});
+
+// get appointments for interpreter
+const getInterpreterAppointments = asyncHandler(async (req, res) => {
+  const {id} = req.user;
+  console.log(id)
+  try {
+    const user = await User.findById(id)
+    console.log(user)
+    if (!user) {
+      return res.json({error:"User not found"});
+    }
+    
+    const appointments = await Appointment.find({interpreter:id})
     .populate("interpreter", "username email")
     .populate("client", "username email")
     .sort({date:1});
@@ -197,7 +237,8 @@ const markAsComplete = asyncHandler(async (req, res) => {
 module.exports = {
   createAppointment,
   totalAppointments,
-  myAppointments,
+  // interpreterAppointments,
+  getInterpreterAppointments,
   rateAppointment,
   getUpcomingAppointments,
   getPastAppointments,

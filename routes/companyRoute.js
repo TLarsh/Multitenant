@@ -4,8 +4,9 @@ const {  createInterpreter, getAllInterpreters } = require('../controller/interp
 const { authMiddleware, isCompanyAdmin } = require('../middlewares/authMiddleware');
 const { getAllLogs, getAcompanyLogs } = require('../controller/logCtrl');
 const { addStaff } = require('../controller/staffCtrl');
-const { addClient, getAllClients } = require('../controller/clientCtrl');
+const { addClient, getAllClients, getCompanyTotalClients } = require('../controller/clientCtrl');
 const { createAppointment, totalAppointments } = require('../controller/appointmentCtrl');
+const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
 
 
 
@@ -16,8 +17,10 @@ router.get('/get-interpreters', authMiddleware, isCompanyAdmin, getAllInterprete
 router.post('/add-staff', authMiddleware, isCompanyAdmin, addStaff);
 router.post('/add-client', authMiddleware, isCompanyAdmin, addClient);
 router.get('/get-clients', authMiddleware, isCompanyAdmin, getAllClients);
+router.get('/get-total-clients', authMiddleware, isCompanyAdmin, getCompanyTotalClients);
 router.post('/add-appointment', authMiddleware, isCompanyAdmin, createAppointment);
 router.get('/get-total-appointments', authMiddleware, isCompanyAdmin, totalAppointments);
+router.get('/get-total-staffs', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
 
 
 module.exports = router
