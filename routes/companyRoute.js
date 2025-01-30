@@ -7,6 +7,7 @@ const { addStaff } = require('../controller/staffCtrl');
 const { addClient, getAllClients, getCompanyTotalClients } = require('../controller/clientCtrl');
 const { createAppointment, totalAppointments } = require('../controller/appointmentCtrl');
 const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
+const { updateCompany } = require('../controller/companyCtrl');
 
 
 
@@ -20,7 +21,8 @@ router.get('/get-clients', authMiddleware, isCompanyAdmin, getAllClients);
 router.get('/get-total-clients', authMiddleware, isCompanyAdmin, getCompanyTotalClients);
 router.post('/add-appointment', authMiddleware, isCompanyAdmin, createAppointment);
 router.get('/get-total-appointments', authMiddleware, isCompanyAdmin, totalAppointments);
-router.get('/get-total-staffs', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
+router.get('/get-total-staffs-interpreters', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
+router.put('/edit/:id', authMiddleware, isCompanyAdmin, updateCompany);
 
 
 module.exports = router

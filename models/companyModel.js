@@ -11,10 +11,19 @@ var companySchema = new mongoose.Schema({
     },
     email:{
         type:String,
+        unique:true,
+        lowercase:true,
+        validate: {
+            validator:function (v) {
+                return /^[^\s@]+@[^\s@]+.[^\s@]+$/.test(v)
+            },
+            message : "Invalid email format",
+        }
     },
     phone:{
         type:Number,
         required:true,
+        maxlength: [11, "phone number cannot exceed 11 characters"],
         unique:true,
     },
     

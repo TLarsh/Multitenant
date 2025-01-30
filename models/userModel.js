@@ -3,17 +3,35 @@ const bcrypt = require('bcrypt')
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
     username:{
+        type:String,
+        unique:true  
+    },
+    fullname:{
         type:String,  
     },
     email:{
         type:String,
         required:true,
         unique:true,
+        lowercase:true,
+        validate: {
+            validator:function (v) {
+                return /^[^\s@]+@[^\s@]+.[^\s@]+$/.test(v)
+            },
+            message : "Invalid email format",
+        }
     },
     phone:{
         type:String,
         required:true,
         unique:true,
+        // validate: {
+        //     validator:function (v) {
+        //         return /^\d{1,11}$/.test(v)
+        //     },
+        //     message: "Phone number must contain only digits not more than 11 characters",
+        // },
+        maxlength: [11, "phone number cannot exceed 11 characters"]
     },
     password:{
         type:String,
@@ -32,6 +50,14 @@ var userSchema = new mongoose.Schema({
     address:{
         type:String
     },
+    languages:[{
+        type: String,
+        required: true,
+    }],
+    specializations:[{
+        type: String,
+        required: true,
+    }],
     appointments:[
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -58,15 +84,15 @@ userSchema.pre("save", async function(next){
     this.password = await bcrypt.hash(this.password, salt)
 });
 
-userSchema.pre("findOneAndDelete", async function(next) {
-    const userId = this.getQuery().id;
-    try {
-        await mongoose.model("Appointment").deleteMany({ $or: [{ client: userId }, { interpreter: userId }] });
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
+// userSchema.pre("findOneAndDelete", async function(next) {
+//     const userId = this.getQuery().id;
+//     try {
+//         await mongoose.model("Appointment").deleteMany({ $or: [{ client: userId }, { interpreter: userId }] });
+//         next();
+//     } catch (error) {
+//         next(error);
+//     }
+// });
 
 userSchema.methods.isPasswordMatched = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);

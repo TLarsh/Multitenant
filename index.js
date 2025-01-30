@@ -23,6 +23,7 @@ app.use(cors());
 app.use (bodyParser.json());
 app.use(cookieParser());
 app.use (bodyParser.urlencoded({extended:false}));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 
 app.use('/api/user', authRouter);
@@ -31,9 +32,9 @@ app.use('/api/company', companyRouter);
 app.use('/api/interpreter', interpreterRouter);
 app.use('/api/client', clientRouter);
 // app.use('/api/log', logRouter);
-app.use("/", (req, res)=>{
-    res.send('hello at server')
-});
+// app.use("/", (req, res)=>{
+//     res.send('hello at server')
+// });
 
 // error handlers
 app.use(notFound);

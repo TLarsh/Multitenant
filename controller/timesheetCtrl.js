@@ -85,6 +85,7 @@ const clockOut = asyncHandler (async (req, res) => {
 
 const deleteTimesheet = asyncHandler(async(req, res) => {
     const {id} = req.params;
+    
     console.log(id)
 })
 

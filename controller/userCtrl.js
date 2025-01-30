@@ -26,42 +26,47 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     const {email, password} = req.body;
     console.log(email,password);
     const findUser = await User.findOne({email:email});
-    console.log(findUser)
     // CHECK FOR THE EXISTENCE OF USER
-    if  (findUser && await findUser.isPasswordMatched(password)) {
-        const refreshToken = await generateRefreshToken(findUser?.id);
-
-        // UPDATE THE REFRESH TOKEN TO THE USER MODEL
-        const userRefreshToken = await User.findByIdAndUpdate(findUser.id,
-            {
-                refreshToken:refreshToken
-            },{
-                new:true
+    try {
+        if  (findUser && await findUser.isPasswordMatched(password)) {
+            console.log(findUser)
+            const refreshToken = await generateRefreshToken(findUser?.id);
+    
+            // UPDATE THE REFRESH TOKEN TO THE USER MODEL
+            const userRefreshToken = await User.findByIdAndUpdate(findUser.id,
+                {
+                    refreshToken:refreshToken
+                },{
+                    new:true
+                });
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly:true,
+                maxAge:72*60*60*1000,
+            }
+            )
+    
+            const Loger = await logModel.create({
+                name:findUser.username,
+                activity:'signed in',
+                status:'success',
+                description:'User logged into the system'
+            })
+    
+            res.json({
+                _id: findUser?._id,
+                username: findUser?.username,
+                email: findUser?.email,
+                phone: findUser?.phone,
+                token: generateToken(findUser?._id),
             });
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly:true,
-            maxAge:72*60*60*1000,
+            
+        }else{
+            console.log(error)
+            res.status(500).json(error);
+            // res.status(500).json({error:"Could not find user"});
         }
-        )
-
-        const Loger = await logModel.create({
-            name:findUser.username,
-            activity:'signed in',
-            status:'success',
-            description:'User logged into the system'
-        })
-
-        res.json({
-            _id: findUser?._id,
-            username: findUser?.username,
-            email: findUser?.email,
-            phone: findUser?.phone,
-            token: generateToken(findUser?._id),
-        });
-        
-    }else{
-        // console.log(error)
-        res.status(500).json({error:"Could not find user"});
+    } catch (error) {
+        throw new Error(error);
     }
 });
 
@@ -129,6 +134,19 @@ const updateaUser = asyncHandler (async (req, res) => {
     }
 });
 
+const updatePassword = asyncHandler (async (req, res) => {
+    const { id } = req.user;
+    const password = req.body;
+    const user = await User.findById(id);
+    if (password){
+        user.password = password;
+        const changedPassword = await user.save();
+        res.status(200).json(changedPassword)
+    } else {
+        res.status(400).json({error:"field cannot be blank"})
+    }
+});
+
 const activateUser = asyncHandler (async (req, res) => {
     const {id} = req.params;
     validateMongoDbId(id);
@@ -178,7 +196,7 @@ const handleRefreshToken = asyncHandler (async(req, res) => {
 
 
 
-module.exports = { createUser, 
+module.exports = { createUser, updatePassword, 
     loginUserCtrl, getaUser, getallUsers, 
     deleteaUser, updateaUser, activateUser, 
     deactivateUser, handleRefreshToken, totalUsers};

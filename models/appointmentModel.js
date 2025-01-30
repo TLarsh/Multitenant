@@ -39,7 +39,15 @@ var appointmentSchema = new mongoose.Schema({
         required:true,
         
     },
-    created_by:{
+    agreementForm:{
+        type:String,   
+    },
+
+    signedAgreementForm:{
+        type:String,     
+    },
+
+    createdBy:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },

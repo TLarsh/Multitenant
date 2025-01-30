@@ -5,15 +5,21 @@ const User = require("../models/userModel");
 // this api allows company admin to add client
 const addClient = asyncHandler(async (req, res) => {
     try {
-        const client = await Client.create({...req.body, createdBy:req.user})
-        const user = await User.create({
-            ...req.body,
-            role : 'client',
-            createdBy:  req.user
-        });
-        res.status(200).json({message:"Client successfully created", client:client, role_detail:user})
+
+        const findUser = await User.findOne({email:req.body.email})
+        if (!findUser) {
+            const user = await User.create ({
+                ...req.body,
+                role : 'client',
+                createdBy : req.user,
+            });
+            res.status(201).json({messaeg:"Client successfully added", role_details:user})
+        } else {
+            res.status(403).json({error:"Client already exist"});
+        }
+        
     } catch (error) {
-        res.status(500).json({error: "Error adding client"});
+        res.status(500).json(error);
     }
 });
 
@@ -22,7 +28,8 @@ const getAllClients = asyncHandler(async (req, res) => {
     const {id} = req.user;
     
     try{
-        const clients = await Client.find({createdBy:id})
+        const clients = await User.find({createdBy:id, role:"client"})
+        // const clients = await Client.find({createdBy:id})
         res.status(200).json({clients:clients})
     } catch (error) {
         res.status(500).json({error: "Error fetching clients"});

@@ -9,9 +9,16 @@ const User = require("../models/userModel");
 const countStaffAndInterpreter = asyncHandler(async (req, res) => {
     const { id } = req.user;
     try {
-        const countTotal = await User.countDocuments({createdBy:id,
-        role: {$in: ["staff", "interpreter"]}});
-        res.status(200).json({total:countTotal})
+        const countStaff = await User.countDocuments({createdBy:id,
+        role: "staff"});
+        const countInterpreter = await User.countDocuments({createdBy:id,
+        role: "interpreter"});
+        const total = countStaff + countInterpreter 
+        res.status(200).json({
+            staffs:countStaff,
+            interpreters:countInterpreter,
+            total:total,
+        });
     } catch (error) {
         res.status(500).json({error: "Error counting staffs and interpreters"});
     }
@@ -20,11 +27,18 @@ const countStaffAndInterpreter = asyncHandler(async (req, res) => {
 const overallStaffAndInterpreter = asyncHandler(async (req, res) => {
     
     try {
-        const countTotal = await User.countDocuments({
-        role: {$in: ["staff", "interpreter"]}});
-        res.status(200).json({total:countTotal})
+        const countStaff = await User.countDocuments({
+        role: "staff"});
+        const countInterpreter = await User.countDocuments({
+        role: "staff"});
+        const total = countStaff + countInterpreter
+        res.status(200).json({
+            staffs:countStaff,
+            interpreters:countInterpreter,
+            total:total,
+        });
     } catch (error) {
-        res.status(500).json({error: "Error counting staffs and interpreters"});
+        res.status(500).json({err: "Error counting staffs and interpreters", error});
     }
 });
 
