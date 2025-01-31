@@ -3,7 +3,7 @@ const Company = require("../models/companyModel");
 const User = require("../models/userModel");
 
 
-// ADD NEW COMPANY BY SUPERUSER
+// ADD NEW COMPANY BY SUPERUSER =======================================
 const createCompany = asyncHandler(async (req, res) => {
     try {
         const findCompany = Company.findOne({email:req.body.email});
@@ -29,7 +29,8 @@ const createCompany = asyncHandler(async (req, res) => {
     }
 });
 
-// update company by company or and superuser
+// update company by company or and superuser ==========================================
+
 const updateCompany = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const user = req.user.id;
@@ -56,7 +57,7 @@ const updateCompany = asyncHandler(async (req, res) => {
     }
 });
 
-
+// Retrieve list of all company ==========================================
 
 const getAllCompanies = asyncHandler(async (req, res) => {
     try {
@@ -68,6 +69,8 @@ const getAllCompanies = asyncHandler(async (req, res) => {
     }
 });
 
+// Count the  toal number of comapanies =======================================
+
 const totalCompanies = asyncHandler(async (req, res) => {
     try {
         const companies = await Company.countDocuments();
@@ -77,6 +80,8 @@ const totalCompanies = asyncHandler(async (req, res) => {
         res.status(500).json({error:"Error fetching total"});
     }
 });
+
+// Retrieves a company by it's ID ====================================
 
 const getACompany = asyncHandler(async (req, res) => {
     const { id } = req.params;

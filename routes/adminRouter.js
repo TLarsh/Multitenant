@@ -7,6 +7,7 @@ const { overallStaffAndInterpreter } = require('../controller/staffInterpreterCt
 
 
 
+
 router.get('/get-company-total', authMiddleware, isAdmin, totalCompanies);
 router.get('/get-companies', authMiddleware, isAdmin, getAllCompanies);
 router.get('/get-company/:id', authMiddleware, isAdmin, getACompany);

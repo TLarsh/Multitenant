@@ -11,7 +11,11 @@ const createInterpreter = asyncHandler(async (req, res) => {
         const findUser = await User.findOne({email:req.body.email})
         if (!findUser) {
             const user = await User.create ({
-                ...req.body,
+                fullname: req.body.fullname,
+                username: req.body.username,
+                email: req.body.email,
+                phone: req.body.phone,
+                password: req.body.password,
                 role : 'interpreter',
                 createdBy : req.user,
             });

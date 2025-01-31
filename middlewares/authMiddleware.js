@@ -19,7 +19,7 @@ const authMiddleware = asyncHandler(async(req, res, next)=>{
                 next();  //call the middleware / controller
             }
         }catch(error){ 
-            throw new Error("Not authorized token expired, Please login again")
+            res.status(400).json("Not authorized token expired, Please login again")
         }
     }else{
         throw new Error('There is no token attached to header')
@@ -31,7 +31,7 @@ const isAdmin = asyncHandler(async(req, res, next) =>{
     const {email} = req.user;
     const adminUser = await User.findOne({email});
     if(adminUser.role !== "admin"){
-        throw new Error("Access denied: Admins only")
+        return res.status(403).json("Access denied: Admins only");
     } else {
         next();
     }
@@ -43,7 +43,7 @@ const isCompanyAdmin = asyncHandler(async(req, res, next) =>{
     const {email} = req.user;
     const adminUser = await User.findOne({email});
     if(adminUser.role !== "company_admin"){
-        throw new Error("Access denied: Company admins only")
+        return res.status(403).json("Access denied: Company admins only")
     } else {
         next();
     }
@@ -55,7 +55,7 @@ const isInterpreter = asyncHandler(async(req, res, next) =>{
     const {email} = req.user;
     const adminUser = await User.findOne({email});
     if(adminUser.role !== "interpreter"){
-        throw new Error("Access denied: Interpreters only")
+        return res.status(403).json("Access denied: Interpreters only")
     } else {
         next();
     }

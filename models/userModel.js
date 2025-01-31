@@ -79,10 +79,12 @@ var userSchema = new mongoose.Schema({
     timestamps:true
 });
 
-userSchema.pre("save", async function(next){
-    const salt = await bcrypt.genSaltSync(10);
-    this.password = await bcrypt.hash(this.password, salt)
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
 });
+
 
 // userSchema.pre("findOneAndDelete", async function(next) {
 //     const userId = this.getQuery().id;

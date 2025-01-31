@@ -1,37 +1,32 @@
 const multer = require("multer");
-const path = require ("path");
-const fs = require('fs');
+const path = require("path");
 
-
-
-const multerStorage = multer.diskStorage({
-    destination: function ( req, file, cb ) {
-        cb(null, 'uploads/');
+// Set storage for multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "uploads/"); // Ensure this folder exists
     },
-    filename: function ( req, file, cb ) {
-        // const uniqueSuffix = Date.now() + "_" + Math.round(Math.random() + 1e9);
-        cb(null, `${Date.now()}-${file.originalname}`);
+    filename: (req, file, cb) => {
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${uniqueSuffix}-${file.originalname}`);
     },
 });
 
-const multerFilter = function (req, file, cb) {
+// File filter to allow only Excel files
+const fileFilter = (req, file, cb) => {
     const allowedExtensions = [".xlsx", ".xls"];
-    const fileExtension = path.extname(file.originalname).toLowerCase();
-    if (allowedExtensions.includes(fileExtension)) {
-        cb(null,true)
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedExtensions.includes(ext)) {
+        cb(null, true);
     } else {
-        cb(
-            {
-                error:"Unsupported, only Excel files are allowed"
-            },
-            false
-        );
+        cb(new Error("Only Excel files are allowed!"), false);
     }
 };
 
-const AgreementForm = multer({
-    storage: multerStorage,
-    fileFilter: multerFilter,
+// Initialize multer with storage and file filter
+const upload = multer({
+    storage,
+    fileFilter,
 });
 
-module.exports = { AgreementForm, };
+module.exports = { upload };

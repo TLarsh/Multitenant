@@ -3,6 +3,8 @@ const Appointment = require("../models/appointmentModel");
 const Client = require("../models/clientModel");
 const Interpreter = require("../models/interpreterModel");
 const User = require("../models/userModel");
+const cloudinary = require("../utils/cloudinary");
+const fs = require("fs")
 
 
 // creates appointment and lists the appointmens to the user appointments array
@@ -63,33 +65,6 @@ const totalAppointments = asyncHandler(async (req, res) => {
   }
 });
 
-// all appointments for interpreter in current session
-// const interpreterAppointments = asyncHandler(async (req, res) => {
-//   const { id } = req.user;
-
-//   try {
-//     const appointments = await Appointment.find({ interpreter: id });
-//     // .populate('interpreter', 'fullname')
-//     // .populate('client', 'name');
-//     res.status(200).json({ appointments: appointments });
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
-
-// // all appointments for client in current session
-// const clientAppointments = asyncHandler(async (req, res) => {
-//   const { id } = req.user;
-
-//   try {
-//     const appointments = await Appointment.find({ interpreter: id });
-//     // .populate('interpreter', 'fullname')
-//     // .populate('client', 'name');
-//     res.status(200).json({ appointments: appointments });
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
 
 
 // get appointments for client
@@ -118,7 +93,8 @@ const getClientAppointments = asyncHandler(async (req, res) => {
   }
 });
 
-// get appointments for interpreter
+// get appointments for interpreter =================================
+
 const getInterpreterAppointments = asyncHandler(async (req, res) => {
   const {id} = req.user;
   console.log(id)
@@ -144,10 +120,7 @@ const getInterpreterAppointments = asyncHandler(async (req, res) => {
   }
 });
 
-
-
-
-
+// Rate appointment by the client ========================================
 
 const rateAppointment = asyncHandler(async (req, res) => {
     const _id = req.user;
@@ -190,6 +163,8 @@ const rateAppointment = asyncHandler(async (req, res) => {
     }
 });
 
+// api retrieves appointment for the client and interpreter in party ============
+
 const getUpcomingAppointments = asyncHandler(async (req,res) => {
   const user = req.user;
   try {
@@ -220,6 +195,8 @@ const getUpcomingAppointments = asyncHandler(async (req,res) => {
     res.status(500).json({error: "Error retrieving upcoming appointments"});
   }
 });
+
+// get past appointment for client and interpreter  =========================
 
 const getPastAppointments = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -252,18 +229,7 @@ const getPastAppointments = asyncHandler(async (req, res) => {
   }
 });
 
-// const rescheduleAppointment = asyncHandler(async (req, res) => {
-//   const { myId } = req.body;
-//   // console.log(id)
-//   try{
-//     console.log(myId)
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-  // const appointment = await Appointment.findByIdAndUpdate(id, req.body, {new:true});
-  // res.status(200).json({message:"Appointment is successfully rescheduled", 
-  // rescheduled_appointment:appointment});
-// });
+// API reschedule appointment for client and interpreter ===========================
 
 const reshAppoint = asyncHandler( async (req, res) => {
   const user = req.user;
@@ -288,6 +254,8 @@ const reshAppoint = asyncHandler( async (req, res) => {
       res.status(403).json({error:"Not authorized!"})
     }
 });
+
+// Mark appointment as complete ===========================================
 
 const markAsComplete = asyncHandler(async (req, res) => {
   const { appointmentId } = req.params;
@@ -345,23 +313,116 @@ const uploadSignedAgreementForm = asyncHandler(async(req, res) => {
 });
 
 // upload an agreement form
-const uploadAgreementForm = asyncHandler(async(req, res) => {
-  const { id } = req.params;
+// const uploadAgreementForm = asyncHandler(async(req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const appointment = Appointment.findById(id);
+//     if (!appointment) {
+//       return res.status(404).json({error:"Appointment not found"})
+//     }
+//     if (appointment.client.toString !== req.user.id.toString()) {
+//       return res.status(403).json({error: "You are not authorized for this action"});
+//     }
+
+//     const uploader = (path) => cloudinaryUploadFile(path, "files");
+//     const urls = [];
+//     const files = req.files;
+//     for (const file of files) {
+//         const {path} = file;
+//         const newpath = await uploader(path);
+//         console.log(newpath);
+//         urls.push(newpath);
+//         console.log(file);
+//         fs.unlinkSync(path);
+//     }
+    
+
+//     const agreement = await Appointment.findByIdAndUpdate(
+//       id,
+//       {
+//         agreementForm : urls.map((file) => {
+//           return file;
+//         }),
+//       },
+//       {new : true}
+//     )
+//     // appointment.agreementForm = req.file.path;
+//     // await appointment.save();
+//     res.status(200).json({
+//       message:"Agreement form uploaded successfully!",
+//       agreementForm:agreement,
+//     });
+//   } catch (error) {
+//     console.log(error)
+//     res.status(400).json({error:"Error uploading agreement form"})
+//   }
+// });
+
+
+
+
+
+const uploadAgreementForm = asyncHandler (async (req, res) => {
+  const { appointmentId } = req.params;
+  const { formType } = req.body; // Can be 'agreementForm' or 'signedAgreementForm'
+  const requesterId = req.user.id; // Assuming req.user is set after authentication
+
   try {
-    const appointment = Appointment.findById(id);
-    if (!appointment) {
-      return res.status(404).json({error:"Appointment not found"})
-    }
-    if (appointment.client.toString !== req.user.id.toString()) {
-      return res.status(403).json({error: "You are not authorized for this action"});
-    }
-    appointment.agreementForm = req.file.path;
-    await appointment.save();
-    res.status(200).json({message:"Agreement form uploaded successfully!"})
+      // Check if the appointment exists
+      const appointment = await Appointment.findById(appointmentId);
+      if (!appointment) {
+          return res.status(404).json({ message: "Appointment not found" });
+      }
+
+      // Check if the requester is associated with the appointment
+      if (appointment.client.toString() !== requesterId && appointment.interpreter.toString() !== requesterId) {
+          return res.status(403).json({ message: "Unauthorized: You are not part of this appointment" });
+      }
+
+      // Check if a file is provided
+      if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Validate formType
+      if (!["agreementForm", "signedAgreementForm"].includes(formType)) {
+          return res.status(400).json({ message: "Invalid formType. Must be 'agreementForm' or 'signedAgreementForm'" });
+      }
+
+      // Upload the file to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+          resource_type: "raw", // For non-image files like Excel
+          folder: "agreement_forms", // Cloudinary folder name
+      });
+
+      // Delete the local file after upload
+      fs.unlinkSync(req.file.path);
+
+      // Update the appropriate field in the appointment
+      if (formType === "agreementForm") {
+          appointment.agreementForm = result.secure_url;
+      } else if (formType === "signedAgreementForm") {
+          appointment.signedAgreementForm = result.secure_url;
+      }
+      await appointment.save();
+
+      res.status(200).json({
+          message: `${formType} uploaded successfully`,
+          formUrl: result.secure_url,
+      });
   } catch (error) {
-    res.status(400).json({error:"Error uploading agreement form"})
+      console.error(error);
+      res.status(500).json({ message: "An error occurred", error: error.message });
   }
 });
+
+
+
+
+
+
+
+
 
 module.exports = {
   createAppointment,

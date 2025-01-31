@@ -1,9 +1,8 @@
 const asyncHandler = require("express-async-handler");
-const Timesheet = require("../models/Timesheet");
+const Timesheet = require("../models/timesheetModel");
 
-const createTimesheet = expressAsyncHandler(async(req, res) => {
+const createTimesheet = asyncHandler(async(req, res) => {
     const {appointmentId, clockIn, clockOut, date, reason} = req.body;
-
     try {
         const newTimesheet = new Timesheet({
             appointmentId,
@@ -23,12 +22,12 @@ const createTimesheet = expressAsyncHandler(async(req, res) => {
 // get all timesheets
 const getTimesheets = asyncHandler(async (req, res) => {
     console.log(req.user);
-    const { name, timeframe } = req.query;
+    const { timeframe } = req.query;
 
   
-    if (!name) {
-      return res.status(400).json({ error: "Could not get company name" });
-    }
+    // if (!name) {
+    //   return res.status(400).json({ error: "Could not get company name" });
+    // }
   
     let dateFilter = {};
   
@@ -55,10 +54,12 @@ const getTimesheets = asyncHandler(async (req, res) => {
       }
     }
     
-    const query = name
-    console.log({"query":query})
+
+  
+    // const query = name
+    // console.log({"query":query})
     try {
-        const timesheets = await Timesheet.find({name, ...dateFilter}).sort({ timestamp: -1});
+        const timesheets = await Timesheet.find({...dateFilter}).sort({ timestamp: -1});
         // .populate("appointmentId", "note date");
         res.status(200).json(timesheets);
     } catch (error) {

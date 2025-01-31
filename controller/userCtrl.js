@@ -22,54 +22,99 @@ const createUser = asyncHandler( async(req, res) => {
 });
 
 // HANDLE USERLOGIN
-const loginUserCtrl = asyncHandler(async (req, res) => {
-    const {email, password} = req.body;
-    console.log(email,password);
-    const findUser = await User.findOne({email:email});
-    // CHECK FOR THE EXISTENCE OF USER
-    try {
-        if  (findUser && await findUser.isPasswordMatched(password)) {
-            console.log(findUser)
-            const refreshToken = await generateRefreshToken(findUser?.id);
+// const loginUserCtrl = asyncHandler(async (req, res) => {
+//     const {email, password} = req.body;
+//     console.log(email,password);
+//     const findUser = await User.findOne({email:email});
+//     // CHECK FOR THE EXISTENCE OF USER
+//     try {
+//         if  (findUser && await findUser.isPasswordMatched(password)) {
+//             console.log(findUser)
+//             const refreshToken = await generateRefreshToken(findUser?.id);
     
-            // UPDATE THE REFRESH TOKEN TO THE USER MODEL
-            const userRefreshToken = await User.findByIdAndUpdate(findUser.id,
-                {
-                    refreshToken:refreshToken
-                },{
-                    new:true
-                });
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly:true,
-                maxAge:72*60*60*1000,
-            }
-            )
+//             // UPDATE THE REFRESH TOKEN TO THE USER MODEL
+//             const userRefreshToken = await User.findByIdAndUpdate(findUser.id,
+//                 {
+//                     refreshToken:refreshToken
+//                 },{
+//                     new:true
+//                 });
+//             res.cookie("refreshToken", refreshToken, {
+//                 httpOnly:true,
+//                 maxAge:72*60*60*1000,
+//             }
+//             )
     
-            const Loger = await logModel.create({
-                name:findUser.username,
-                activity:'signed in',
-                status:'success',
-                description:'User logged into the system'
-            })
+//             const Loger = await logModel.create({
+//                 name:findUser.username,
+//                 activity:'signed in',
+//                 status:'success',
+//                 description:'User logged into the system'
+//             })
     
-            res.json({
-                _id: findUser?._id,
-                username: findUser?.username,
-                email: findUser?.email,
-                phone: findUser?.phone,
-                token: generateToken(findUser?._id),
-            });
+//             res.json({
+//                 _id: findUser?._id,
+//                 username: findUser?.username,
+//                 email: findUser?.email,
+//                 phone: findUser?.phone,
+//                 token: generateToken(findUser?._id),
+//             });
             
-        }else{
-            console.log(error)
-            res.status(500).json(error);
-            // res.status(500).json({error:"Could not find user"});
-        }
-    } catch (error) {
-        throw new Error(error);
-    }
-});
+//         }else{
+//             console.log(error)
+//             res.status(500).json(error);
+//             // res.status(500).json({error:"Could not find user"});
+//         }
+//     } catch (error) {
+//         throw new Error(error);
+//     }
+// });
 
+const loginUserCtrl = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        // Compare passwords
+        const isMatch = await user.isPasswordMatched(password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        // Generate JWT
+        const refreshToken = generateToken(user._id);
+        const userRefreshToken = await User.findByIdAndUpdate(user._id,
+            {
+                refreshToken:refreshToken
+            },{
+                new:true
+            });
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly:true,
+            maxAge:72*60*60*1000,
+        }
+        )
+
+        res.status(200).json({
+            message: "Login successful",
+            token:generateToken(user._id),
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "An error occurred", error: error.message });
+    }
+};
 
 
 const getallUsers = asyncHandler ( async (req, res) => {

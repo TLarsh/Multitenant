@@ -8,6 +8,7 @@ const { addClient, getAllClients, getCompanyTotalClients } = require('../control
 const { createAppointment, totalAppointments } = require('../controller/appointmentCtrl');
 const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
 const { updateCompany } = require('../controller/companyCtrl');
+const { getTimesheets } = require('../controller/timesheetCtrl');
 
 
 
@@ -23,6 +24,7 @@ router.post('/add-appointment', authMiddleware, isCompanyAdmin, createAppointmen
 router.get('/get-total-appointments', authMiddleware, isCompanyAdmin, totalAppointments);
 router.get('/get-total-staffs-interpreters', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
 router.put('/edit/:id', authMiddleware, isCompanyAdmin, updateCompany);
+router.get('/timesheets', authMiddleware, isCompanyAdmin, getTimesheets);
 
 
 module.exports = router
