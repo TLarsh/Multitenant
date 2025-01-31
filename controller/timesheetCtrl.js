@@ -35,16 +35,16 @@ const getTimesheets = asyncHandler(async (req, res) => {
     if (timeframe) {
       const now = new Date();
       switch (timeframe) {
-        case "12months":
+        case "year":
           dateFilter = { timestamp: { $gte: new Date(now.setFullYear(now.getFullYear() - 1)) } };
           break;
-        case "30days":
+        case "month":
           dateFilter = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 30)) } };
           break;
-        case "7days":
+        case "week":
           dateFilter = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 7)) } };
           break;
-        case "24hours":
+        case "day":
           dateFilter = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 1)) } };
           break;
         case "alltime":
