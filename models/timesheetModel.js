@@ -2,19 +2,27 @@ const mongoose = require('mongoose');
 
 
 var timesheetSchema = new mongoose.Schema({
+    interpreter: { type: mongoose.Schema.Types.ObjectId, 
+        ref: "User", 
+        required: true 
+    },
     appointmentId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Appointment",
         required: true,
     },
+    visitationId: { 
+        type: String, 
+        // required: true 
+    },
     
     clockIn:{
         type:Date,
-        required:true,
+        default: null,
     },
     clockOut:{
         type:Date,
-        required:true,
+        default: null,
     },
     reason:{
         type:String,
@@ -25,13 +33,10 @@ var timesheetSchema = new mongoose.Schema({
         required:true,
         
     },
-    time:{
-        type:String,
-        
-    },
     
     duration:{
-        type:String
+        type:Number,
+        default: 0
     },
     
     
@@ -41,12 +46,12 @@ var timesheetSchema = new mongoose.Schema({
 }
 );
 
-timesheetSchema.pre("save", function(next) {
-    if (this.clockIn && this.clockOut) {
-        const duration_in_minutes = Math.round((this.clockOut - this.clockIn)) / (1000 * 60);
-        this.duration = duration_in_minutes;
-    }
-});
+// timesheetSchema.pre("save", function(next) {
+//     if (this.clockIn && this.clockOut) {
+//         const duration_in_minutes = Math.round((this.clockOut - this.clockIn)) / (1000 * 60);
+//         this.duration = duration_in_minutes;
+//     }
+// });
 
 //Export the model
 module.exports = mongoose.model('Timesheet', timesheetSchema);

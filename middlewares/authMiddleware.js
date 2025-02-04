@@ -19,7 +19,7 @@ const authMiddleware = asyncHandler(async(req, res, next)=>{
                 next();  //call the middleware / controller
             }
         }catch(error){ 
-            res.status(400).json("Not authorized token expired, Please login again")
+            res.status(401).json("Not authorized token expired, Please login again")
         }
     }else{
         throw new Error('There is no token attached to header')

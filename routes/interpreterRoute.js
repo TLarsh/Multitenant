@@ -8,7 +8,7 @@ const {
     getInterpreterAppointments,
     uploadAgreementForm,
 } = require('../controller/appointmentCtrl');
-const { createTimesheet } = require('../controller/timesheetCtrl');
+const { createTimesheet, clockOut } = require('../controller/timesheetCtrl');
 const { authMiddleware, isInterpreter } = require('../middlewares/authMiddleware');
 const { upload } = require('../middlewares/uploadFiles');
 router = express.Router();
@@ -23,6 +23,7 @@ router.put("/reschedule-appointment/:appointmentId", authMiddleware, isInterpret
 router.get('/view-appointments', authMiddleware, getInterpreterAppointments);
 router.put('/signed-agreement-form/:appointmentId', authMiddleware, isInterpreter, upload.single("file"), uploadAgreementForm);
 router.post('/check-in', authMiddleware, isInterpreter, createTimesheet);
+router.put('/check-out/:timesheetId', authMiddleware, isInterpreter, clockOut);
 
 
 // router.get('/:id/appointment-preview', authMiddleware, isInterpreter, appointmentPreview);

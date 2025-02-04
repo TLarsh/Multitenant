@@ -131,7 +131,7 @@ const rateAppointment = asyncHandler(async (req, res) => {
     const alreadyRated = appointment.feedback.ratedBy && (appointment.feedback.ratedBy.toString() === _id.toString())
     try {
         if (req.user.id.toString() !== appointment.client.toString()) {
-          return res.status(403).json({error:"Not authorizer"})
+          return res.status(401).json({error:"Not authorized"})
         }
         
         if (alreadyRated) {
@@ -192,7 +192,7 @@ const getUpcomingAppointments = asyncHandler(async (req,res) => {
     
   } catch (error) {
     // throw new Error(error)
-    res.status(500).json({error: "Error retrieving upcoming appointments"});
+    res.status(400).json({error: "Error retrieving upcoming appointments"});
   }
 });
 
@@ -225,7 +225,7 @@ const getPastAppointments = asyncHandler(async (req, res) => {
     
   } catch (error) {
     // throw new Error(error)
-    res.status(500).json({error: "Error retrieving upcoming appointments"});
+    res.status(400).json({error: "Error retrieving upcoming appointments"});
   }
 });
 
@@ -251,7 +251,7 @@ const reshAppoint = asyncHandler( async (req, res) => {
       res.status(200).json({message:"Appointment is successfully rescheduled", 
       rescheduled_appointment:appointment});
     } else {
-      res.status(403).json({error:"Not authorized!"})
+      res.status(401).json({error:"Not authorized!"})
     }
 });
 
@@ -267,7 +267,7 @@ const markAsComplete = asyncHandler(async (req, res) => {
       return res.status(404).json({error:"Appointment not found"});
     }
     if (appointment.interpreter.toString() !== req.user.toString()) {
-      return res.status(403).json({error:"Not authorized user to update this appointment"});
+      return res.status(401).json({error:"Not authorized user to update this appointment"});
     }
     appointment.status = "completed";
     if (note) {
@@ -312,60 +312,11 @@ const uploadSignedAgreementForm = asyncHandler(async(req, res) => {
   }
 });
 
-// upload an agreement form
-// const uploadAgreementForm = asyncHandler(async(req, res) => {
-//   const { id } = req.params;
-//   try {
-//     const appointment = Appointment.findById(id);
-//     if (!appointment) {
-//       return res.status(404).json({error:"Appointment not found"})
-//     }
-//     if (appointment.client.toString !== req.user.id.toString()) {
-//       return res.status(403).json({error: "You are not authorized for this action"});
-//     }
-
-//     const uploader = (path) => cloudinaryUploadFile(path, "files");
-//     const urls = [];
-//     const files = req.files;
-//     for (const file of files) {
-//         const {path} = file;
-//         const newpath = await uploader(path);
-//         console.log(newpath);
-//         urls.push(newpath);
-//         console.log(file);
-//         fs.unlinkSync(path);
-//     }
-    
-
-//     const agreement = await Appointment.findByIdAndUpdate(
-//       id,
-//       {
-//         agreementForm : urls.map((file) => {
-//           return file;
-//         }),
-//       },
-//       {new : true}
-//     )
-//     // appointment.agreementForm = req.file.path;
-//     // await appointment.save();
-//     res.status(200).json({
-//       message:"Agreement form uploaded successfully!",
-//       agreementForm:agreement,
-//     });
-//   } catch (error) {
-//     console.log(error)
-//     res.status(400).json({error:"Error uploading agreement form"})
-//   }
-// });
-
-
-
-
 
 const uploadAgreementForm = asyncHandler (async (req, res) => {
   const { appointmentId } = req.params;
   const { formType } = req.body; // Can be 'agreementForm' or 'signedAgreementForm'
-  const requesterId = req.user.id; // Assuming req.user is set after authentication
+  const requesterId = req.user.id; 
 
   try {
       // Check if the appointment exists
@@ -389,16 +340,13 @@ const uploadAgreementForm = asyncHandler (async (req, res) => {
           return res.status(400).json({ message: "Invalid formType. Must be 'agreementForm' or 'signedAgreementForm'" });
       }
 
-      // Upload the file to Cloudinary
       const result = await cloudinary.uploader.upload(req.file.path, {
-          resource_type: "raw", // For non-image files like Excel
-          folder: "agreement_forms", // Cloudinary folder name
+          resource_type: "raw", 
+          folder: "agreement_forms", 
       });
 
-      // Delete the local file after upload
       fs.unlinkSync(req.file.path);
 
-      // Update the appropriate field in the appointment
       if (formType === "agreementForm") {
           appointment.agreementForm = result.secure_url;
       } else if (formType === "signedAgreementForm") {
@@ -411,7 +359,7 @@ const uploadAgreementForm = asyncHandler (async (req, res) => {
           formUrl: result.secure_url,
       });
   } catch (error) {
-      console.error(error);
+      // console.error(error);
       res.status(500).json({ message: "An error occurred", error: error.message });
   }
 });

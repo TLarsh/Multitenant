@@ -36,7 +36,7 @@ const getAllClients = asyncHandler(async (req, res) => {
     // const clients = await Client.find({createdBy:id})
     res.status(200).json({ clients: clients });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching clients" });
+    res.status(400).json({ error: "Error fetching clients, make sure to provide Id" });
   }
 });
 
@@ -49,7 +49,7 @@ const getCompanyTotalClients = asyncHandler(async (req, res) => {
     res.status(200).json({ total: countClient });
   } catch (error) {
       console.log(error)
-    res.status(500).json("Error retrieving company's total client");
+    res.status(400).json("Error retrieving company's total client, make sure and Id is provided");
   }
 });
 

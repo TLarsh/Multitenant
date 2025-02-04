@@ -17,7 +17,7 @@ const createUser = asyncHandler( async(req, res) => {
         const newUser = await User.create(req.body);
         res.json(newUser);
     }else{
-        res.status(500).json({error:'User already exist'});
+        res.status(403).json({error:'User already exist'});
     };
 });
 
@@ -111,8 +111,8 @@ const loginUserCtrl = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "An error occurred", error: error.message });
+        // console.error(error);
+        res.status(400).json({ message: "An error occurred", error: error.message });
     }
 };
 
@@ -145,7 +145,7 @@ const getaUser = asyncHandler (async (req, res) => {
         res.json(user);
     } catch (error) {
         // throw new Error(error);
-        res.status(500).json("User not found")
+        res.status(400).json("User not found")
     };
 });
 
@@ -157,7 +157,7 @@ const deleteaUser = asyncHandler (async (req, res) => {
         res.json(deletedUser);
     } catch (error) {
         // throw new Error(error);
-        res.status(500).json({error:"Can't find user for delete"})
+        res.status(400).json({error:"Can't find user "})
     };
 });
 
