@@ -8,7 +8,7 @@ const { addClient, getAllClients, getCompanyTotalClients } = require('../control
 const { createAppointment, totalAppointments } = require('../controller/appointmentCtrl');
 const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
 const { updateCompany } = require('../controller/companyCtrl');
-const { getTimesheets } = require('../controller/timesheetCtrl');
+const { getTimesheets, sendClockInReminder} = require('../controller/timesheetCtrl');
 
 
 
@@ -25,6 +25,7 @@ router.get('/get-total-appointments', authMiddleware, isCompanyAdmin, totalAppoi
 router.get('/get-total-staffs-interpreters', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
 router.put('/edit/:id', authMiddleware, isCompanyAdmin, updateCompany);
 router.get('/timesheets', authMiddleware, isCompanyAdmin, getTimesheets);
+router.post('/send-notification/:interpreterId', authMiddleware, sendClockInReminder);
 
 
 module.exports = router

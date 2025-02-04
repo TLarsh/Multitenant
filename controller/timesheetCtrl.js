@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { generateVisitationId } = require("../config/visitationId");
 const Appointment = require("../models/appointmentModel");
 const Timesheet = require("../models/timesheetModel");
+const sendNotification = require("../utils/firebase");
 const User = require("../models/userModel");
 
 // interpreter clocks In  =====================================================
@@ -140,9 +141,42 @@ const deleteTimesheet = asyncHandler(async(req, res) => {
 
 
 
+const sendClockInReminder = async ( req, res ) => {
+    const {interpreterId} = req.params;
+    const interpreter = await User.findById(interpreterId);
+    if (interpreter?.fcmToken) {
+        // console.log({interpreter:interpreter})
+        // sendNotification(interpreter.fcmToken, "Clock-In Reminder", "Don't forget to clock in!");
+        try {
+            const { title, body } = req.body;
+        
+            const message = {
+            //   token: token,
+              token: interpreter.fcmToken,
+              notification: {
+                title: title,
+                body: body,
+              },
+            };
+        
+            const response = await messaging.send(message);
+            res.json({ success: true, response });
+          } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+          }
+    } else {
+        return res.status(400).json({error:"No fcm token found for user"})
+    }
+};
+
+
+
+
+
 
 module.exports = {
     createTimesheet,
     getTimesheets,
     clockOut,
+    sendClockInReminder,
 }

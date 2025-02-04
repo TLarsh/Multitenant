@@ -240,8 +240,23 @@ const handleRefreshToken = asyncHandler (async(req, res) => {
 });
 
 
+// save FirebaseCloudMessaging token =========================
+
+const updateFcmToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+        await User.findByIdAndUpdate(req.user.id, { fcmToken: token });
+        res.status(201).json({ message: "FCM token saved successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error saving token", error: error.message });
+    }
+};
+
+
 
 module.exports = { createUser, updatePassword, 
     loginUserCtrl, getaUser, getallUsers, 
     deleteaUser, updateaUser, activateUser, 
-    deactivateUser, handleRefreshToken, totalUsers};
+    deactivateUser, handleRefreshToken, 
+    totalUsers, updateFcmToken, 
+};

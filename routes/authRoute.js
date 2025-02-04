@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createUser, loginUserCtrl, getaUser, getallUsers, deleteaUser, updateaUser, deactivateUser, activateUser, handleRefreshToken, totalUsers, updatePassword } = require('../controller/userCtrl');
+const { createUser, loginUserCtrl, getaUser, getallUsers, deleteaUser, updateaUser, deactivateUser, activateUser, handleRefreshToken, totalUsers, updatePassword, updateFcmToken } = require('../controller/userCtrl');
 const { authMiddleware, isAdmin, } = require('../middlewares/authMiddleware');
 
 
@@ -15,6 +15,7 @@ router.put('/:id', authMiddleware, updateaUser);
 router.put('/deactivate/:id', authMiddleware, isAdmin, deactivateUser);
 router.put('/activate/:id', authMiddleware, isAdmin, activateUser);
 router.put('/change-password/:id', authMiddleware, updatePassword);
+router.post("/fcm-token", authMiddleware, updateFcmToken);
 
 module.exports = router;
 
