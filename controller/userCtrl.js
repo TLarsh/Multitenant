@@ -5,6 +5,8 @@ const User = require("../models/userModel");
 const validateMongoDbId = require("../utils/validateMongoDbId");
 const jwt = require('jsonwebtoken');
 const logModel = require("../models/logModel");
+const sendEmail = require("./emailCtrl");
+const crypto = require('crypto');
 
 const createUser = asyncHandler( async(req, res) => {
     const email = req.body.email
@@ -22,53 +24,7 @@ const createUser = asyncHandler( async(req, res) => {
 });
 
 // HANDLE USERLOGIN
-// const loginUserCtrl = asyncHandler(async (req, res) => {
-//     const {email, password} = req.body;
-//     console.log(email,password);
-//     const findUser = await User.findOne({email:email});
-//     // CHECK FOR THE EXISTENCE OF USER
-//     try {
-//         if  (findUser && await findUser.isPasswordMatched(password)) {
-//             console.log(findUser)
-//             const refreshToken = await generateRefreshToken(findUser?.id);
-    
-//             // UPDATE THE REFRESH TOKEN TO THE USER MODEL
-//             const userRefreshToken = await User.findByIdAndUpdate(findUser.id,
-//                 {
-//                     refreshToken:refreshToken
-//                 },{
-//                     new:true
-//                 });
-//             res.cookie("refreshToken", refreshToken, {
-//                 httpOnly:true,
-//                 maxAge:72*60*60*1000,
-//             }
-//             )
-    
-//             const Loger = await logModel.create({
-//                 name:findUser.username,
-//                 activity:'signed in',
-//                 status:'success',
-//                 description:'User logged into the system'
-//             })
-    
-//             res.json({
-//                 _id: findUser?._id,
-//                 username: findUser?.username,
-//                 email: findUser?.email,
-//                 phone: findUser?.phone,
-//                 token: generateToken(findUser?._id),
-//             });
-            
-//         }else{
-//             console.log(error)
-//             res.status(500).json(error);
-//             // res.status(500).json({error:"Could not find user"});
-//         }
-//     } catch (error) {
-//         throw new Error(error);
-//     }
-// });
+
 
 const loginUserCtrl = async (req, res) => {
     const { email, password } = req.body;
@@ -87,7 +43,7 @@ const loginUserCtrl = async (req, res) => {
         }
 
         // Generate JWT
-        const refreshToken = generateToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
         const userRefreshToken = await User.findByIdAndUpdate(user._id,
             {
                 refreshToken:refreshToken
@@ -181,7 +137,8 @@ const updateaUser = asyncHandler (async (req, res) => {
 
 const updatePassword = asyncHandler (async (req, res) => {
     const { id } = req.user;
-    const password = req.body;
+    const { password } = req.body;
+    console.log({password:password})
     const user = await User.findById(id);
     if (password){
         user.password = password;
@@ -222,6 +179,48 @@ const deactivateUser = asyncHandler (async (req, res) => {
     }
 });
 
+
+
+const forgotPasswordToken = asyncHandler(async(req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("User not found with this email");
+    const token = await user.createPasswordResetToken()
+    await user.save();
+    const resetURL = `Hi, Please follow the reset link to reset your password. Valid for 10min from now. < href='http://localhost:8000/api/user/password-reset/${token}'>Click Here</>`;
+       const data = {
+           to: email,
+           text: "Hey User",
+           subbject: "Forgot Password Link",
+           html: resetURL,
+       };
+       sendEmail(data);
+       res.json(data);
+    try {
+    } catch(error) {
+       throw new Error(error);
+    }
+});
+
+const resetPassword = asyncHandler(async(req, res) => {
+    const { password } = req.body;
+    const { token} = req.params;
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() },
+    });
+    if (!user) throw new Error("Token Expired, Please try again later");
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+    return res.json(user);
+});
+
+
+
+
 const handleRefreshToken = asyncHandler (async(req, res) => {
     const cookie = req.cookies;
     console.log(cookie);
@@ -254,9 +253,37 @@ const updateFcmToken = async (req, res) => {
 
 
 
+// LOGOUT FUNCTIONALITY
+const logout = asyncHandler(async(req, res) => {
+    const cookie = req.cookies;
+    if(!cookie?.refreshToken) throw new Error("No refresh cookie present in cookies");
+    const refreshToken = cookie.refreshToken;
+    const user = await User.findOne({ refreshToken });
+    console.log(user);
+    if(!user) {
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+        });
+        // FORBIDDEN
+        return res.sendStatus(204);
+    }
+    await User.findOneAndUpdate(refreshToken, {
+        refreshToken: "",
+    });
+    res.clearCookie("refreshToken", {
+        httpOnly: true, 
+        secure: true,
+    });
+    // FORBIDDEN
+    res.sendStatus(204);
+});
+
+
 module.exports = { createUser, updatePassword, 
     loginUserCtrl, getaUser, getallUsers, 
     deleteaUser, updateaUser, activateUser, 
     deactivateUser, handleRefreshToken, 
-    totalUsers, updateFcmToken, 
+    totalUsers, updateFcmToken, forgotPasswordToken,
+    resetPassword, logout,
 };
