@@ -85,7 +85,13 @@ const getallUsers = asyncHandler ( async (req, res) => {
 const totalUsers = asyncHandler(async (req, res) => {
     try {
         const users = await User.countDocuments();
-        res.status(200).json({total:users})
+        const activeUsers = await User.countDocuments({isActive:true});
+        const inactiveUsers = await User.countDocuments({isActive:false});
+        res.status(200).json({
+            active:activeUsers,
+            inactive:inactiveUsers,
+            total:users
+        })
 
     } catch(error) {
         // throw new Error(error)
@@ -268,15 +274,17 @@ const logout = asyncHandler(async(req, res) => {
         // FORBIDDEN
         return res.sendStatus(204);
     }
-    await User.findOneAndUpdate(refreshToken, {
-        refreshToken: "",
-    });
+    // await User.findOneAndUpdate(refreshToken, {
+    //     refreshToken: "",
+    // });
+    user.refreshToken = "";
+    await user.save()
     res.clearCookie("refreshToken", {
         httpOnly: true, 
         secure: true,
     });
-    // FORBIDDEN
-    res.sendStatus(204);
+    
+    res.status(200).json({message:"Successfully logged out"});
 });
 
 
