@@ -23,8 +23,7 @@ const createUser = asyncHandler( async(req, res) => {
     };
 });
 
-// HANDLE USERLOGIN
-
+// HANDLE USERLOGIN =====================================================
 
 const loginUserCtrl = async (req, res) => {
     const { email, password } = req.body;
@@ -81,6 +80,7 @@ const getallUsers = asyncHandler ( async (req, res) => {
         throw new Error(error);
     };
 });
+
 
 const totalUsers = asyncHandler(async (req, res) => {
     try {
@@ -259,7 +259,8 @@ const updateFcmToken = async (req, res) => {
 
 
 
-// LOGOUT FUNCTIONALITY
+// LOGOUT FUNCTIONALITY =================================================
+
 const logout = asyncHandler(async(req, res) => {
     const cookie = req.cookies;
     if(!cookie?.refreshToken) throw new Error("No refresh cookie present in cookies");
@@ -271,7 +272,7 @@ const logout = asyncHandler(async(req, res) => {
             httpOnly: true,
             secure: true,
         });
-        // FORBIDDEN
+        // NO CONTENT
         return res.sendStatus(204);
     }
     // await User.findOneAndUpdate(refreshToken, {

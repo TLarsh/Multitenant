@@ -3,6 +3,7 @@ const { generateVisitationId } = require("../config/visitationId");
 const Appointment = require("../models/appointmentModel");
 const Timesheet = require("../models/timesheetModel");
 const sendNotification = require("../utils/firebase");
+const { getFirestore } = require ("firebase-admin/firestore");
 const User = require("../models/userModel");
 
 // interpreter clocks In  =====================================================
@@ -131,32 +132,46 @@ const clockOut = asyncHandler (async (req, res) => {
     }
 });
 
+// delete timesheet =======================================
 
 const deleteTimesheet = asyncHandler(async(req, res) => {
     const {id} = req.params;
     
     console.log(id)
-})
+});
 
 
 
+// send message reinder for clock-in and clock-out =======================
 
 const sendClockInReminder = async ( req, res ) => {
     const {interpreterId} = req.params;
     const interpreter = await User.findById(interpreterId);
+    const db = getFirestore();
+
     if (interpreter?.fcmToken) {
         // console.log({interpreter:interpreter})
         // sendNotification(interpreter.fcmToken, "Clock-In Reminder", "Don't forget to clock in!");
         try {
             const { title, body } = req.body;
-        
+
+            const messageData = {
+                senderId : req.user.id,
+                receiverId : interpreterId,
+                body,
+                timestamp: new Date(),
+                isRead: false,
+            };
+            // Save message in Firestore
+            const docRef = await db.collection("messages").add(messageData);
+
             const message = {
-            //   token: token,
               token: interpreter.fcmToken,
               notification: {
                 title: title,
                 body: body,
               },
+              data: { messageId: docRef.id },
             };
         
             const response = await messaging.send(message);
@@ -171,6 +186,42 @@ const sendClockInReminder = async ( req, res ) => {
 
 
 
+// check unread messages ========================
+const unreadMessages = async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      const messagesRef = db.collection("messages");
+      const snapshot = await messagesRef.where("receiverId", "==", userId).where("isRead", "==", false).get();
+  
+      if (snapshot.empty) {
+        return res.json({ success: true, messages: [] });
+      }
+  
+      const messages = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      res.json({ success: true, messages });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve unread messages", error });
+    }
+};
+
+// mark mesage as read ===============================
+
+const markAsRead = async (req, res) => {
+    const { messageId } = req.params;
+  
+    try {
+      const messageRef = db.collection("messages").doc(messageId);
+      await messageRef.update({ isRead: true });
+  
+      res.json({ success: true, message: "Message marked as read" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark message as read", error });
+    }
+};
+  
+
+
 
 
 
@@ -179,4 +230,6 @@ module.exports = {
     getTimesheets,
     clockOut,
     sendClockInReminder,
-}
+    unreadMessages,
+    markAsRead,
+};
