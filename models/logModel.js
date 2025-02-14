@@ -1,12 +1,10 @@
 const mongoose = require('mongoose'); 
 
 
-
-
 var logSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true,  
+    user:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref: 'User', 
     },
     activity:{
         type:String,
@@ -14,23 +12,19 @@ var logSchema = new mongoose.Schema({
     
     status:{
         type:String,
+        enum:['success', 'failed'],
+        required:true
     },
-    // timestamp:{
-    //     type:Date,
-    //     default:Date.now,
-    // },
+    timestamp:{
+        type:Date,
+        default:Date.now,
+    },
     
     description:{
         type:String
     },
-}, {
-    timestamps:true
+
 });
 
 
-
-
-
-
-//Export the model
 module.exports = mongoose.model('Log', logSchema);

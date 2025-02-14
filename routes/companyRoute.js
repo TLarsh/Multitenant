@@ -4,7 +4,7 @@ const {  createInterpreter, getAllInterpreters } = require('../controller/interp
 const { authMiddleware, isCompanyAdmin } = require('../middlewares/authMiddleware');
 const { getAllLogs, getAcompanyLogs } = require('../controller/logCtrl');
 const { addStaff } = require('../controller/staffCtrl');
-const { addClient, getAllClients, getCompanyTotalClients } = require('../controller/clientCtrl');
+const { addClient, getAllClients, getCompanyTotalClients, addMedicalRecord } = require('../controller/clientCtrl');
 const { createAppointment, totalAppointments } = require('../controller/appointmentCtrl');
 const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
 const { updateCompany } = require('../controller/companyCtrl');
@@ -24,6 +24,7 @@ router.post('/add-appointment', authMiddleware, isCompanyAdmin, createAppointmen
 router.get('/get-total-appointments', authMiddleware, isCompanyAdmin, totalAppointments);
 router.get('/get-total-staffs-interpreters', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
 router.put('/edit/:id', authMiddleware, isCompanyAdmin, updateCompany);
+router.put('/client-medical-record/:clientId', authMiddleware, isCompanyAdmin, addMedicalRecord);
 router.get('/timesheets', authMiddleware, isCompanyAdmin, getTimesheets);
 router.post('/send-notification/:interpreterId', authMiddleware, sendClockInReminder);
 

@@ -16,13 +16,16 @@ const addClient = asyncHandler(async (req, res) => {
         role: "client",
         createdBy: req.user,
       });
+      createLog(req.user._id, "Add a client", "success", `${req.user.username} successfully added a new client with ID ${user._id}`);
       res
         .status(201)
         .json({ messaeg: "Client successfully added", role_details: user });
     } else {
+      createLog(req.user._id, "Add a client", "failed", `Error adding client, ${req.body.email} already exist`);
       res.status(403).json({ error: "Client already exist" });
     }
   } catch (error) {
+    createLog(req.user._id, "Add a client", "failed", `Error adding client.`);
     res.status(500).json(error);
   }
 });
@@ -53,4 +56,34 @@ const getCompanyTotalClients = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { addClient, getAllClients, getCompanyTotalClients };
+
+// add medical record to client details ==========================
+
+const addMedicalRecord = asyncHandler(async (req, res) => {
+  const {clientId} = req.params;
+  console.log(clientId);
+  try {
+    const user = await User.findOne({_id:clientId});
+    if (user.role !== 'client') return res.status(400).json({error:"User is not a client"});
+    const client = await User.findByIdAndUpdate(
+      clientId,
+      {
+        $push:{
+          medicalRecords:{
+            title:req.body.title,
+            description:req.body.description,
+          }
+        }
+      },
+      {
+        new:true,
+      }
+    );
+    res.status(201).json({message:"Client medical record Successsfully added", client});
+    console.log(client);
+  } catch (error) {
+    res.status(400).json({message:"There was an error adding medical record", error:error.message});
+  }
+});
+
+module.exports = { addClient, getAllClients, getCompanyTotalClients, addMedicalRecord };

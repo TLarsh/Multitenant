@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const logModel = require("../models/logModel");
 const sendEmail = require("./emailCtrl");
 const crypto = require('crypto');
+const createLog = require("../utils/loggerCtrl");
 
 const createUser = asyncHandler( async(req, res) => {
     const email = req.body.email
@@ -31,16 +32,20 @@ const loginUserCtrl = async (req, res) => {
     try {
         // Check if user exists
         const user = await User.findOne({ email });
+        
         if (!user) {
+            createLog(null, "Login attempt", "failed", `failed login attempt for ${email}`);
             return res.status(401).json({ message: "Invalid email or password" });
         }
-
+        
         // Compare passwords
         const isMatch = await user.isPasswordMatched(password);
         if (!isMatch) {
+            createLog(null, "Login attempt", "failed", `failed login attempt for ${email}`);
             return res.status(401).json({ message: "Invalid email or password" });
         }
-
+    
+        
         // Generate JWT
         const refreshToken = generateRefreshToken(user._id);
         const userRefreshToken = await User.findByIdAndUpdate(user._id,
@@ -49,23 +54,25 @@ const loginUserCtrl = async (req, res) => {
             },{
                 new:true
             });
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly:true,
-            maxAge:72*60*60*1000,
-        }
-        )
-
-        res.status(200).json({
-            message: "Login successful",
-            token:generateToken(user._id),
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        });
-    } catch (error) {
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly:true,
+                maxAge:72*60*60*1000,
+            }
+            )
+            
+            createLog(user._id, "Login attempt", "success", `${user.username} logged into the system`);
+            res.status(200).json({
+                message: "Login successful",
+                token:generateToken(user._id),
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+            });
+        } catch (error) {
+        createLog(null, "Login attempt", "failed", `Error during login for ${email}`);
         // console.error(error);
         res.status(400).json({ message: "An error occurred", error: error.message });
     }

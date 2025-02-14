@@ -34,6 +34,12 @@ var userSchema = new mongoose.Schema({
         // },
         maxlength: [11, "phone number cannot exceed 11 characters"]
     },
+    rostalID:{
+        type:String,
+    },
+    expirationDate:{
+        type:Date
+    },
     password:{
         type:String,
         required:true,
@@ -58,6 +64,10 @@ var userSchema = new mongoose.Schema({
     specializations:[{
         type: String,
         required: true,
+    }],
+    medicalRecords:[{
+        title:{type:String},
+        description:{type:String},
     }],
     appointments:[
         {

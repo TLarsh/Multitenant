@@ -12,6 +12,24 @@ var appointmentSchema = new mongoose.Schema({
         ref: "User",
         required:true
     },
+    staff:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+    staffType:{
+        type:String,
+        enum:['HDM','Nurse','Doctor', 'Health Care'],
+        required:true
+    },
+    insuranceCompany:{
+        type:String,
+        required:true,
+    },
+    language:{
+        type:String,
+        required:true,
+    },
 
     email:{
         type:String,
@@ -26,8 +44,13 @@ var appointmentSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:['scheduled','completed','canceled, rescheduled'],
+        enum:['scheduled','completed','canceled', 'rescheduled'],
         default:'scheduled'
+    },
+    appointmentType:{
+        type:String,
+        enum:['In Person','Remote', 'Phone'],
+        required:true,
     },
     date:{
         type:Date,

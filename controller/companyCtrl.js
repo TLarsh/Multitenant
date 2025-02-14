@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Company = require("../models/companyModel");
 const User = require("../models/userModel");
 const validateMongoDbId = require("../utils/validateMongoDbId");
+const createLog = require("../utils/loggerCtrl");
 
 
 
@@ -10,10 +11,12 @@ const createCompany = asyncHandler(async (req, res) => {
     try {
         const findCompany = Company.findOne({email:req.body.email});
         if (findCompany) {
+            createLog(req.user._id, "Add a company", "failed", `${req.body.email} is already in use`);
             return res.status(403).json({error:"company email is already in use"});
         }
         const findUser = User.findOne({email:req.body.email});
         if (findUser) {
+            createLog(req.user._id, "Add a company", "failed", `${req.body.email} is already in use`);
             return res.status(403).json({error:"User email is already in use"});
         }
         const newCompany = await Company.create({...req.body, createdBy:req.user});
@@ -29,8 +32,10 @@ const createCompany = asyncHandler(async (req, res) => {
         await Company.findByIdAndUpdate(newCompany.id,{
             admin : admin.id
         }, {new:true});
+        createLog(req.user._id, "Add a company", "success", `${req.user.username} successfully added a new company with ID ${newCompany._id}`);
         res.status(200).json({message:'company successfully created',company:newCompany, role_details:admin});
     } catch (error) {
+        createLog(req.user._id, "Add a company", "failed", `${req.user.username} encountered an error adding a new company`);
         res.status(500).json({message:"There is an error adding companny",});
     }
 });
@@ -112,8 +117,10 @@ const activateCompany = asyncHandler (async (req, res) => {
         },{
             new:true
         });
+        createLog(req.user._id, "Activate a company", "success", `${req.user.username} successfully Activated a company with ID ${id}`);
         res.json (activatedCompany);
     } catch (error) {
+        createLog(req.user._id, "Activate a company", "failed", `Error activating company with ID ${id}`);
         throw new Error(error);
     }
 });
@@ -127,8 +134,10 @@ const deactivateCompany = asyncHandler (async (req, res) => {
         },{
             new:true,
         });
+        createLog(req.user._id, "Deactivate a company", "success", `${req.user.username} successfully deactivated a company with ID ${id}`);
         res.json(deactivated);
     } catch (error) {
+        createLog(req.user._id, "Deactivate a company", "success", `Error deactivating company with ID ${id}`);
         throw new Error(error);
     }
 });
