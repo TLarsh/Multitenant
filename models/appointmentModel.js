@@ -19,7 +19,7 @@ var appointmentSchema = new mongoose.Schema({
     },
     staffType:{
         type:String,
-        enum:['HDM','Nurse','Doctor', 'Health Care', 'Others],
+        enum:['HDM','Nurse','Doctor', 'Health Care', 'Others'],
         required:true
     },
     insuranceCompany:{
