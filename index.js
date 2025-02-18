@@ -6,7 +6,7 @@ const companyRouter = require('./routes/companyRoute');
 const interpreterRouter = require('./routes/interpreterRoute');
 const clientRouter = require('./routes/clientRoute');
 const messageRouter = require('./routes/messageRoute');
-const cors = require("cors")
+const cors = require("cors");
 // const logRouter = require('./routes/logRoute');
 const app = express();
 

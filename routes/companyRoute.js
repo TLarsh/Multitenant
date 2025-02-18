@@ -5,7 +5,7 @@ const { authMiddleware, isCompanyAdmin } = require('../middlewares/authMiddlewar
 const { getAllLogs, getAcompanyLogs } = require('../controller/logCtrl');
 const { addStaff } = require('../controller/staffCtrl');
 const { addClient, getAllClients, getCompanyTotalClients, addMedicalRecord } = require('../controller/clientCtrl');
-const { createAppointment, totalAppointments } = require('../controller/appointmentCtrl');
+const { createAppointment, totalAppointments, cancelAppointment, countCompletedAppointment, } = require('../controller/appointmentCtrl');
 const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
 const { updateCompany } = require('../controller/companyCtrl');
 const { getTimesheets, sendClockInReminder} = require('../controller/timesheetCtrl');
@@ -25,8 +25,10 @@ router.get('/get-total-appointments', authMiddleware, isCompanyAdmin, totalAppoi
 router.get('/get-total-staffs-interpreters', authMiddleware, isCompanyAdmin, countStaffAndInterpreter);
 router.put('/edit/:id', authMiddleware, isCompanyAdmin, updateCompany);
 router.put('/client-medical-record/:clientId', authMiddleware, isCompanyAdmin, addMedicalRecord);
+router.put('/cancel-appointment/:appointmentId', authMiddleware, isCompanyAdmin, cancelAppointment);
 router.get('/timesheets', authMiddleware, isCompanyAdmin, getTimesheets);
+router.get('/completed-appointment/:interpreterId', authMiddleware, isCompanyAdmin, countCompletedAppointment);
 router.post('/send-notification/:interpreterId', authMiddleware, sendClockInReminder);
 
 
-module.exports = router
+module.exports = router;

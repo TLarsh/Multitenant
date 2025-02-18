@@ -11,13 +11,9 @@ const createLog = require("../utils/loggerCtrl");
 // creates appointment and lists the appointmens to the user appointments array
 
 const createAppointment = asyncHandler(async (req, res) => {
-  const {interpreter, client, email, address, phone, date, time, note, location } = req.body;  
-  console.log(interpreter)
   try {
     const clientId = await User.findById(req.body.client);
-    console.log(clientId)
-    const interpreterId = await User.findById(req.body.interpreter)
-    console.log(interpreterId)
+    const interpreterId = await User.findById(req.body.interpreter);
     const staffId = await User.findById(req.body.staff)
     if (!clientId) {
       createLog(req.user._id, "Create appointment attempt", "failed", `Create appointment attempt failed to ${req.user.username}`);
@@ -203,7 +199,7 @@ const getUpcomingAppointments = asyncHandler(async (req,res) => {
     
   } catch (error) {
     // throw new Error(error)
-    res.status(400).json({error: "Error retrieving upcoming appointments"});
+    res.status(400).json({error: "Error retrieving upcoming appointments."});
   }
 });
 
@@ -236,7 +232,7 @@ const getPastAppointments = asyncHandler(async (req, res) => {
     
   } catch (error) {
     // throw new Error(error)
-    res.status(400).json({error: "Error retrieving upcoming appointments"});
+    res.status(400).json({error: "Error retrieving upcoming appointments."});
   }
 });
 
@@ -250,19 +246,19 @@ const reshAppoint = asyncHandler( async (req, res) => {
   
   const appointment = await Appointment.findById(appointmentId);
   if(!appointment){
-    return res.status(404).json({error:"Appointment not found"});
+    return res.status(404).json({error:"Appointment not found."});
     createLog(user._id, "Attempt to reschedule appointment", "failed", `${user} failed on an attempt to reschedule appointment, appointment not found.`);
   }
   console.log({apptIdInt:appointment});
     if (user.id.toString() === appointment.interpreter.toString()) {
       const appointment = await Appointment.findByIdAndUpdate(appointmentId, req.body, {new:true});
       createLog(user._id, "Attempt to reschedule appointment", "success", `${user.username} resheduled appointment with ID ${appointmentId}.`);
-      res.status(200).json({message:"Appointment is successfully rescheduled", 
+      res.status(200).json({message:"Appointment is successfully rescheduled.", 
       rescheduled_appointment:appointment});
     } else if (user.id.toString() === appointment.client.toString()) {
       const appointment = await Appointment.findByIdAndUpdate(appointmentId, req.body, {new:true});
       createLog(user._id, "Attempt to reschedule appointment", "success", `${user.username} resheduled appointment with ID ${appointmentId}.`);
-      res.status(200).json({message:"Appointment is successfully rescheduled", 
+      res.status(200).json({message:"Appointment is successfully rescheduled.", 
       rescheduled_appointment:appointment});
     } else {
       createLog(user._id, "Attempt to reschedule appointment", "failed", `${user.username} not a party to reschedule appointment.`);
@@ -280,11 +276,11 @@ const markAsComplete = asyncHandler(async (req, res) => {
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) {
       createLog(req.user._id, "Mark appointment as complete", "failed", `${req.user.username} could not find appointment with ID ${appointmentId}.`);
-      return res.status(404).json({error:"Appointment not found"});
+      return res.status(404).json({error:"Appointment not found."});
     }
     if (appointment.interpreter.toString() !== req.user.toString()) {
       createLog(req.user._id, "Mark appointment as complete", "failed", `${req.user.username} not a party to mark appointment as complete.`);
-      return res.status(401).json({error:"Not authorized user to update this appointment"});
+      return res.status(401).json({error:"Not authorized user to update this appointment!"});
     }
     appointment.status = "completed";
     if (note) {
@@ -296,11 +292,38 @@ const markAsComplete = asyncHandler(async (req, res) => {
   } catch (error) {
     // throw new Error(error)
     createLog(req.user._id, "Mark appointment as complete", "failed", `${req.user.username} failed in marking appointment, request or parameters not passed correctly.`);
-    res.status(400).json({error: "There is an error marking apointment as complete, ID may not be passed properly"});
+    res.status(400).json({error: "There is an error marking apointment as complete, ID may not be passed properly."});
   }
 
   
 });
+
+// cancel appointment by the company admin ==============================
+
+const cancelAppointment = asyncHandler(async (req, res) => {
+  const {user} = req.user._id;
+  const {appointmentId} = req.params;
+  try {
+    const appointment = await Appointment.findById(appointmentId);
+    
+    if (user !== appointment.createdBy.toString()) {
+      createLog(user, "Attempt to cancel appointment", "failed", `${req.user.username} not authorized to cancel appointment.`);
+      return res.status(401).json({error:"Not authorized to cancel this appointment!"});
+    }
+    if (appointment.status === 'canceled') {
+      createLog(user, "Attempt to cancel appointment", "failed", `${req.user.username} can not cancel an already canceled appointment.`);
+      return res.status(404).json({error:"Appointment has already been canceled."})
+    }
+    const canceledAppointment = await Appointment.findByIdAndUpdate(appointmentId,{status:"canceled"}, {new:true});
+    await appointment.save();
+    createLog(user, "Attempt to cancel appointment", "success", `${req.user.username} canceled an appointment with ID ${appointmentId}.`);
+    res.status(200).json({message:"Appointment canceled successfully.", canceledAppointment:canceledAppointment});
+  } catch (error) {
+    createLog(user, "Attempt to cancel appointment", "failed", `${req.user.username} encountered and error canceling appointment.`);
+    res.status(400).json({message:"Error processing cancel appointment.", error:error.message})
+  }
+});
+
 
 const getAppointment = asyncHandler(async(req, res) => {
   const { id } = req.params;
@@ -308,7 +331,7 @@ const getAppointment = asyncHandler(async(req, res) => {
     const appointment = await Appointment.findBId(id);
     res.status(200).json(appointment);
   } catch (error) {
-    res.status(500).json({error:"Error fetching appointment"});
+    res.status(500).json({error:"Error fetching appointment."});
   }
 });
 
@@ -318,16 +341,17 @@ const uploadSignedAgreementForm = asyncHandler(async(req, res) => {
   try {
     const appointment = Appointment.findById(id);
     if (!appointment) {
-      return res.status(404).json({error:"Appointment not found"})
+      return res.status(404).json({error:"Appointment not found."})
     }
+    
     if (appointment.interpreter.toString !== req.user.id.toString()) {
-      return res.status(403).json({error: "You are not authorized for this action"});
+      return res.status(401).json({error: "You are not authorized for this action!"});
     }
     appointment.signedAgreementForm = req.file.path;
     await appointment.save();
-    res.status(200).json({message:"Signed agreement form uploaded successfully!"})
+    res.status(200).json({message:"Signed agreement form uploaded successfully."})
   } catch (error) {
-    res.status(400).json({error:"Error uploading signed agreement form"})
+    res.status(400).json({error:"Error uploading signed agreement form."})
   }
 });
 
@@ -342,25 +366,25 @@ const uploadAgreementForm = asyncHandler (async (req, res) => {
       const appointment = await Appointment.findById(appointmentId);
       if (!appointment) {
           createLog(req.user._id, "Upload agreement / signed agreement form", "failed", `${req.user.username} could not find appointment with ID ${appointmentId}.`);
-          return res.status(404).json({ message: "Appointment not found" });
+          return res.status(404).json({ message: "Appointment not found." });
       }
 
       // Check if the requester is associated with the appointment
       if (appointment.client.toString() !== requesterId && appointment.interpreter.toString() !== requesterId) {
           createLog(req.user._id, "upload agreement / signed agreement form", "failed", `${req.user.username} is not a party on this appointment.`);
-          return res.status(403).json({ message: "Unauthorized: You are not part of this appointment" });
+          return res.status(401).json({ message: "Unauthorized: You are not part of this appointment!" });
       }
 
       // Check if a file is provided
       if (!req.file) {
           createLog(req.user._id, "upload agreement / signed agreement form", "failed", `${req.user.username} did not submit approriate file`);
-          return res.status(400).json({ message: "No file uploaded" });
+          return res.status(400).json({ message: "No file to be uploaded." });
       }
 
       // Validate formType
       if (!["agreementForm", "signedAgreementForm"].includes(formType)) {
           createLog(req.user._id, "upload agreement / signed agreement form", "failed", `${req.user.username} did not submit the appropriate form type.`);
-          return res.status(400).json({ message: "Invalid formType. Must be 'agreementForm' or 'signedAgreementForm'" });
+          return res.status(400).json({ message: "Invalid formType. Must be 'agreementForm' or 'signedAgreementForm.'" });
       }
 
       const result = await cloudinary.uploader.upload(req.file.path, {
@@ -378,13 +402,29 @@ const uploadAgreementForm = asyncHandler (async (req, res) => {
       await appointment.save();
       createLog(req.user._id, "upload agreement / signed agreement form", "success", `${req.user.username} uploaded a ${formType} on an appointment with ID ${appointmentId}.`);
       res.status(200).json({
-          message: `${formType} uploaded successfully`,
+          message: `${formType} uploaded successfully.`,
           formUrl: result.secure_url,
       });
   } catch (error) {
       // console.error(error);
       createLog(req.user._id, "upload agreement / signed agreement form", "failed", `${req.user.username} encountered and error in processing form upload.`);
       res.status(500).json({ message: "An error occurred", error: error.message });
+  }
+});
+
+
+// count total completed appointment of an interpreter ==================
+
+const countCompletedAppointment = asyncHandler(async (req, res) => {
+  const { interpreterId } = req.params;
+  
+  try {
+    if (! interpreterId ) return res.status(400).json({error:"ID parameter must be provided"});
+    const filter = {interpreter:interpreterId, status:"completed"}
+    const completedAppointment = await Appointment.countDocuments(filter);
+    res.status(200).json({completed_appointments:completedAppointment});
+  } catch (error) {
+    res.status(400).json({message:"Error counting appointmented appointments", error:error.message});
   }
 });
 
@@ -410,4 +450,6 @@ module.exports = {
   reshAppoint,
   uploadAgreementForm,
   uploadSignedAgreementForm,
+  cancelAppointment,
+  countCompletedAppointment,
 };
