@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Interpreter = require("../models/interpreterModel");
 const User = require("../models/userModel");
 const createLog = require("../utils/loggerCtrl");
+const Appointment = require("../models/appointmentModel");
 mongoose = require("mongoose")
 
 
@@ -42,10 +43,32 @@ const getAllInterpreters = asyncHandler(async (req, res) => {
     const {id} = req.user;
     
     try{
-        const interpreters = await User.find({createdBy:id, role:"interpreter"})
-        res.status(200).json({interpreters:interpreters})
+        const interpreters = await User.find({createdBy:id, role:"interpreter"});
+        if (! interpreters.length) {
+            return res.status(400).json({error:"No interpreter yet for this company"});
+        }
+        const interpretersWithCompletedAppointment = await Promise.all(
+            interpreters.map(async(interpreter) => {
+                const completedAppointments = await Appointment.countDocuments({
+                    interpreter:interpreter._id,
+                    status:"completed",
+                });
+                return {
+                    _id: interpreter._id,
+                    fullname: interpreter.fullname,
+                    email: interpreter.email,
+                    phone: interpreter.phone,
+                    role: interpreter.role,
+                    completedAppointments,
+                    rosterID: interpreter.rosterID,
+                    expirationDate: interpreter.expirationDate,
+                    status: interpreter.isActive ? "Active" : "Inactive"
+                }
+            })
+        );
+        res.status(200).json({interpreters:interpretersWithCompletedAppointment});
     } catch (error) {
-        res.status(500).json({error: "Error fetching interpreters"});
+        res.status(400).json({message: "Error fetching interpreters", error:error.message});
     }
 });
 

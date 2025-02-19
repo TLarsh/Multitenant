@@ -3,7 +3,7 @@ const router = express.Router();
 const {  createInterpreter, getAllInterpreters } = require('../controller/interpreterCtrl');
 const { authMiddleware, isCompanyAdmin } = require('../middlewares/authMiddleware');
 const { getAllLogs, getAcompanyLogs } = require('../controller/logCtrl');
-const { addStaff } = require('../controller/staffCtrl');
+const { addStaff, getAllStaffs } = require('../controller/staffCtrl');
 const { addClient, getAllClients, getCompanyTotalClients, addMedicalRecord } = require('../controller/clientCtrl');
 const { createAppointment, totalAppointments, cancelAppointment, countCompletedAppointment, } = require('../controller/appointmentCtrl');
 const { countStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
@@ -16,6 +16,7 @@ const { getTimesheets, sendClockInReminder} = require('../controller/timesheetCt
 
 router.post('/add-interpreter', authMiddleware, isCompanyAdmin, createInterpreter);
 router.get('/get-interpreters', authMiddleware, isCompanyAdmin, getAllInterpreters);
+router.get('/get-staffs', authMiddleware, isCompanyAdmin, getAllStaffs);
 router.post('/add-staff', authMiddleware, isCompanyAdmin, addStaff);
 router.post('/add-client', authMiddleware, isCompanyAdmin, addClient);
 router.get('/get-clients', authMiddleware, isCompanyAdmin, getAllClients);

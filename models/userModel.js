@@ -34,7 +34,7 @@ var userSchema = new mongoose.Schema({
         // },
         maxlength: [11, "phone number cannot exceed 11 characters"]
     },
-    rostalID:{
+    rosterID:{
         type:String,
     },
     expirationDate:{
