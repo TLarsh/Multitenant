@@ -1,7 +1,7 @@
 const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 
-// Client sends a message to the company admin
+// Client sends a message to the company admin ==========
 const sendMessage = async (req, res) => {
     try {
         const { receiverId, message } = req.body;
@@ -30,7 +30,7 @@ const sendMessage = async (req, res) => {
     }
 };
 
-// Get chat history between client and company admin
+// Get chat history between client and company admin =======================
 const getChatHistory = async (req, res) => {
     try {
         const { userId } = req.params; // The other participant's ID (either client or admin)

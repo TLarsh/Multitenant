@@ -69,7 +69,7 @@ const updateCompany = asyncHandler(async (req, res) => {
     }
 });
 
-// Retrieve list of all company ==========================================
+// Retrieve list of all companies ==========================================
 
 const getAllCompanies = asyncHandler(async (req, res) => {
     try {
@@ -81,7 +81,7 @@ const getAllCompanies = asyncHandler(async (req, res) => {
     }
 });
 
-// Count the  toal number of comapanies =======================================
+// Count the  total number of comapanies =======================================
 
 const totalCompanies = asyncHandler(async (req, res) => {
     try {
@@ -107,6 +107,7 @@ const getACompany = asyncHandler(async (req, res) => {
 });
 
 
+// Activate a company by it's ID ====================================
 
 const activateCompany = asyncHandler (async (req, res) => {
     const {id} = req.params;
@@ -124,6 +125,8 @@ const activateCompany = asyncHandler (async (req, res) => {
         throw new Error(error);
     }
 });
+
+// Deactivate a company by it's ID ====================================
 
 const deactivateCompany = asyncHandler (async (req, res) => {
     const {id} = req.params;

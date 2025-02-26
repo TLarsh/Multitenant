@@ -24,6 +24,8 @@ const countStaffAndInterpreter = asyncHandler(async (req, res) => {
     }
 });
 
+// Count all staffs and interpreters =========================================
+
 const overallStaffAndInterpreter = asyncHandler(async (req, res) => {
     
     try {

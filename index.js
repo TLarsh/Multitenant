@@ -6,6 +6,7 @@ const companyRouter = require('./routes/companyRoute');
 const interpreterRouter = require('./routes/interpreterRoute');
 const clientRouter = require('./routes/clientRoute');
 const messageRouter = require('./routes/messageRoute');
+const summaryRouter = require('./routes/summaryRouter');
 const cors = require("cors");
 // const logRouter = require('./routes/logRoute');
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/company', companyRouter);
 app.use('/api/interpreter', interpreterRouter);
 app.use('/api/client', clientRouter); 
 app.use('/api/message', messageRouter); 
+app.use('/api/appointment-summary', summaryRouter);
 // app.use('/api/log', logRouter);
 // app.use("/", (req, res)=>{
 //     res.send('hello at server')

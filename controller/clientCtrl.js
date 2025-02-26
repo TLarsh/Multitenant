@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Client = require("../models/clientModel");
 const User = require("../models/userModel");
 
-// this api allows company admin to add client
+// this api allows company admin to add client =========================================================
 const addClient = asyncHandler(async (req, res) => {
   try {
     const findUser = await User.findOne({ email: req.body.email });
@@ -30,7 +30,8 @@ const addClient = asyncHandler(async (req, res) => {
   }
 });
 
-// get all clients to be seen by super admin
+// get all clients to be seen by super admin ===========================================
+
 const getAllClients = asyncHandler(async (req, res) => {
   const { id } = req.user;
 
@@ -43,7 +44,8 @@ const getAllClients = asyncHandler(async (req, res) => {
   }
 });
 
-//  count all clients by the company
+//  count all clients by the company ==========================================
+
 const getCompanyTotalClients = asyncHandler(async (req, res) => {
   const { id } = req.user;
   console.log(id);

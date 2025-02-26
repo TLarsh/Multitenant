@@ -9,6 +9,7 @@ const sendEmail = require("./emailCtrl");
 const crypto = require('crypto');
 const createLog = require("../utils/loggerCtrl");
 
+// Create User ==================================================
 const createUser = asyncHandler( async(req, res) => {
     const email = req.body.email
     console.log(email)
@@ -78,6 +79,7 @@ const loginUserCtrl = async (req, res) => {
     }
 };
 
+// Retrieves all users =================================================
 
 const getallUsers = asyncHandler ( async (req, res) => {
     try {
@@ -88,6 +90,7 @@ const getallUsers = asyncHandler ( async (req, res) => {
     };
 });
 
+// Active, inactive, and overall user count ==========================
 
 const totalUsers = asyncHandler(async (req, res) => {
     try {
@@ -106,6 +109,8 @@ const totalUsers = asyncHandler(async (req, res) => {
     }
 });
 
+// Retrive a user by its ID ========================================
+
 const getaUser = asyncHandler (async (req, res) => {
     const {id} = req.params;
     validateMongoDbId(id);
@@ -117,6 +122,8 @@ const getaUser = asyncHandler (async (req, res) => {
         res.status(400).json("User not found")
     };
 });
+
+// Find a user by its ID and delete =================================
 
 const deleteaUser = asyncHandler (async (req, res) => {
     const {id} = req.params;
@@ -130,6 +137,7 @@ const deleteaUser = asyncHandler (async (req, res) => {
     };
 });
 
+// Find a user by ID and update ===================================
 
 const updateaUser = asyncHandler (async (req, res) => {
     const {id} = req.user;
@@ -148,6 +156,8 @@ const updateaUser = asyncHandler (async (req, res) => {
     }
 });
 
+// Update User password ==============================================
+
 const updatePassword = asyncHandler (async (req, res) => {
     const { id } = req.user;
     const { password } = req.body;
@@ -161,6 +171,8 @@ const updatePassword = asyncHandler (async (req, res) => {
         res.status(400).json({error:"field cannot be blank"})
     }
 });
+
+// Find a user by its ID and activate  ====================================
 
 const activateUser = asyncHandler (async (req, res) => {
     const {id} = req.params;
@@ -176,6 +188,8 @@ const activateUser = asyncHandler (async (req, res) => {
         throw new Error(error);
     }
 });
+
+// Find user by ID and deactivate =====================================
 
 const deactivateUser = asyncHandler (async (req, res) => {
     const {id} = req.params;
@@ -193,6 +207,7 @@ const deactivateUser = asyncHandler (async (req, res) => {
 });
 
 
+// Genetate a forget password token and send a reset link to the user email ==============
 
 const forgotPasswordToken = asyncHandler(async(req, res) => {
     const { email } = req.body;
@@ -215,6 +230,8 @@ const forgotPasswordToken = asyncHandler(async(req, res) => {
     }
 });
 
+// Reset user password ==========================================
+
 const resetPassword = asyncHandler(async(req, res) => {
     const { password } = req.body;
     const { token} = req.params;
@@ -232,7 +249,7 @@ const resetPassword = asyncHandler(async(req, res) => {
 });
 
 
-
+// Get refresh token for user =========================================
 
 const handleRefreshToken = asyncHandler (async(req, res) => {
     const cookie = req.cookies;

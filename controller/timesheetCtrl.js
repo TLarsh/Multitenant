@@ -142,7 +142,7 @@ const deleteTimesheet = asyncHandler(async(req, res) => {
 
 
 
-// send message reinder for clock-in and clock-out =======================
+// send message reminder for clock-in and clock-out =======================
 
 const sendClockInReminder = async ( req, res ) => {
     const {interpreterId} = req.params;

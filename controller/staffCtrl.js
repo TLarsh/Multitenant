@@ -6,14 +6,14 @@ const Appointment = require("../models/appointmentModel");
 const addStaff = asyncHandler(async (req, res) => {
     try {
 
-        const findUser = await User.findOne({email:req.body.email})
+        const findUser = await User.findOne({email:req.body.email});
         if (!findUser) {
             const user = await User.create ({
                 ...req.body,
                 role : 'staff',
                 createdBy : req.user,
             });
-            res.status(201).json({messaeg:"Staff successfully added", role_details:user})
+            res.status(201).json({messaeg:"Staff successfully added", role_details:user});
         } else {
             res.status(403).json({error:"Staff already exist"});
         }
