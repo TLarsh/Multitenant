@@ -6,7 +6,7 @@ const sendNotification = require("../utils/firebase");
 const { getFirestore } = require ("firebase-admin/firestore");
 const User = require("../models/userModel");
 
-// interpreter clocks In  =====================================================
+// Clock in by interpreter  =====================================================
 
 const createTimesheet = asyncHandler(async(req, res) => {
     const {appointmentId, date} = req.body;
@@ -38,7 +38,7 @@ const createTimesheet = asyncHandler(async(req, res) => {
 });
 
 
-// get timesheets by appointmentId, predefined periods and custom filters by date range
+// Get timesheets by appointmentId, predefined periods and custom filters by date range
 
 const getTimesheets = async (req, res) => {
     try {
@@ -50,7 +50,7 @@ const getTimesheets = async (req, res) => {
         // const createdBy = findCreatedBy.createdBy;
         // console.log({createdBy:createdBy})
         if (!companyId){
-            return res.status(403).json({error:"Not authorized, no company Id associated"})
+            return res.status(403).json({error:"Not authorized, no company Id associated"});
         }
         // find all interpreters belonging to the logged in company
         const companyInterpreters = await User.find({ 
@@ -109,7 +109,7 @@ const getTimesheets = async (req, res) => {
     }
 };
 
-// clock out===========================================================
+// Clock out by interpreter ===========================================================
 
 const clockOut = asyncHandler (async (req, res) => {
     const {timesheetId} = req.params;
@@ -124,7 +124,7 @@ const clockOut = asyncHandler (async (req, res) => {
             return res.status(400).json({ message: "You have already clocked out." });
         }
         timesheet.clockOut = new Date();
-        timesheet.duration = Math.round((timesheet.clockOut - timesheet.clockIn) / (1000 * 60));
+        timesheet.duration = Math.round((timesheet.clockOut - timesheet.clockIn) / (1000 * 60 * 60));
         await timesheet.save();
         res.status(200).json({message:"Clock-out time successfully updated", timesheet})
     } catch (error) {
@@ -132,17 +132,21 @@ const clockOut = asyncHandler (async (req, res) => {
     }
 });
 
-// delete timesheet =======================================
+// Delete timesheet =======================================
 
 const deleteTimesheet = asyncHandler(async(req, res) => {
     const {id} = req.params;
-    
-    console.log(id)
+    try {
+        const deletedTimesheet = Timesheet.findByIdAndDelete(id);
+        res.status(200).json(deletedTmesheet);
+    } catch (error) {
+        throw new Error(error.message);
+    }
 });
 
 
 
-// send message reminder for clock-in and clock-out =======================
+// Send message reminder for clock-in and clock-out =======================
 
 const sendClockInReminder = async ( req, res ) => {
     const {interpreterId} = req.params;
@@ -180,13 +184,14 @@ const sendClockInReminder = async ( req, res ) => {
             res.status(500).json({ success: false, error: error.message });
           }
     } else {
-        return res.status(400).json({error:"No fcm token found for user"})
+        return res.status(400).json({error:"No fcm token found for user"});
     }
 };
 
 
 
-// check unread messages ========================
+// Check unread messages ========================
+
 const unreadMessages = async (req, res) => {
     const { userId } = req.params;
   
@@ -205,7 +210,7 @@ const unreadMessages = async (req, res) => {
     }
 };
 
-// mark mesage as read ===============================
+// Mark mesage as read ===============================
 
 const markAsRead = async (req, res) => {
     const { messageId } = req.params;

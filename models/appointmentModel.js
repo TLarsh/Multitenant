@@ -58,6 +58,10 @@ var appointmentSchema = new mongoose.Schema({
         required:true,
         
     },
+    dateCompleted: {
+        type:Date,
+        default: null
+    },
     time:{
         type:String,
         required:true,

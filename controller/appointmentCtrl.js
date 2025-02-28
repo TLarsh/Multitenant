@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Appointment = require("../models/appointmentModel");
+const Timesheet = require("../models/timesheetModel");
 const Client = require("../models/clientModel");
 const Interpreter = require("../models/interpreterModel");
 const User = require("../models/userModel");
@@ -7,7 +8,7 @@ const cloudinary = require("../utils/cloudinary");
 const fs = require("fs");
 const createLog = require("../utils/loggerCtrl");
 
-// creates appointment and lists the appointmens to the user appointments array
+// creates appointment and lists the appointmens to the user appointments array ==================
 
 const createAppointment = asyncHandler(async (req, res) => {
   try {
@@ -80,7 +81,8 @@ const createAppointment = asyncHandler(async (req, res) => {
   }
 });
 
-// total appoinments to be seen by the super admin and company admin
+// total appoinments to be seen by the super admin and company admin ===================
+
 const totalAppointments = asyncHandler(async (req, res) => {
   const user = req.user;
   try {
@@ -199,7 +201,7 @@ const rateAppointment = asyncHandler(async (req, res) => {
   }
 });
 
-// api retrieves appointment for the client and interpreter in party ============
+// api retrieves upcoming appointment for the client and interpreter in party ============
 
 const getUpcomingAppointments = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -346,7 +348,7 @@ const markAsComplete = asyncHandler(async (req, res) => {
       );
       return res.status(404).json({ error: "Appointment not found." });
     }
-    if (appointment.interpreter.toString() !== req.user.toString()) {
+    if (req.user._id.toString() !== appointment.interpreter.toString()) {
       createLog(
         req.user._id,
         "Mark appointment as complete",
@@ -358,6 +360,7 @@ const markAsComplete = asyncHandler(async (req, res) => {
         .json({ error: "Not authorized user to update this appointment!" });
     }
     appointment.status = "completed";
+    appointment.dateCompleted = new Date();
     if (note) {
       appointment.note = note;
     }
@@ -615,22 +618,16 @@ const countCompletedAppointment = asyncHandler(async (req, res) => {
 
 // ===========   APPOINTMENT SUMMARY   ===============
 
-// On daily summary counts completed appointments and total hours =============================
+// In daily summary, counts completed appointments and total hours =============================
 
 const getDailySummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  // const startOfDay = new Date();
-  // startOfDay.setHours(0, 0, 0, 0);
-
-  // const endOfDay = new Date();
-  // endOfDay.setHours(23, 59, 59, 999);
   try {
     if (req.user.role === "admin" || req.user.role === "company_admin") return res.status(403).json("Admins are not allowed!");
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(),
-    now.getMonth(), now.getDate(), 0, 0, 0);
-    const endOfDay = new Date(now.getFullYear(), 
-    now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
     const appointmentsCompleted = await Appointment.find({
       $or: [
         { interpreter : userId },
@@ -638,11 +635,16 @@ const getDailySummary = asyncHandler(async (req, res) => {
         { staff : userId}
       ],
       status: "completed",
-      date : { $gte:startOfDay, $lte:endOfDay }
+      dateCompleted : { $gte:startOfDay, $lte:endOfDay }
+    }).select("_id");
+
+    const appointmentIds = appointmentsCompleted.map(appointments => appointments._id);
+    const timesheets = await Timesheet.find({
+      appointmentId: { $in: appointmentIds }
     });
 
     const completed = appointmentsCompleted.length;
-    const hours = appointmentsCompleted.reduce((sum, appointment) => {
+    const hours = timesheets.reduce((sum, appointment) => {
       return sum + (appointment.duration || 0);
     }, 0);
     res.status(200).json({ completed, hours });
@@ -653,7 +655,7 @@ const getDailySummary = asyncHandler(async (req, res) => {
   }
 });
 
-// On monthly, summary counts completed appointments and total hours =============================
+// On monthly, summary, counts completed appointments and total hours =============================
 
 const getMonthlySummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -676,13 +678,21 @@ const getMonthlySummary = asyncHandler(async (req, res) => {
         { staff : userId}
       ],
       status: "completed",
-      date: { $gte: startOfMonth, $lte: endOfMonth },
+      dateCompleted: { $gte: startOfMonth, $lte: endOfMonth },
+    }).select("_id");
+
+    const appointmentIds = appointmentsCompleted.map(appointments => appointments._id);
+    const timesheets = await Timesheet.find({
+      appointmentId: { $in: appointmentIds }
     });
 
     const completed = appointmentsCompleted.length;
-    const hours = appointmentsCompleted.reduce((sum, appointment) => {
+    const hours = timesheets.reduce((sum, appointment) => {
       return sum + (appointment.duration || 0);
     }, 0);
+    // const hours = appointmentsCompleted.reduce((sum, appointment) => {
+    //   return sum + (appointment.duration || 0);
+    // }, 0);
     res.status(200).json({ completed, hours });
   } catch (error) {
     res
@@ -691,7 +701,7 @@ const getMonthlySummary = asyncHandler(async (req, res) => {
   }
 });
 
-// On bi-weekly summary counts completed appointments and total hours =============================
+// In bi-weekly summary, counts completed appointments and total hours =============================
 
 const getBiWeeklySummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -708,11 +718,16 @@ const getBiWeeklySummary = asyncHandler(async (req, res) => {
         { staff : userId}
       ],
       status: "completed",
-      date: { $gte: inTwoWeeks },
+      dateCompleted: { $gte: inTwoWeeks },
+    });
+
+    const appointmentIds = appointmentsCompleted.map(appointments => appointments._id);
+    const timesheets = await Timesheet.find({
+      appointmentId: { $in: appointmentIds }
     });
 
     const completed = appointmentsCompleted.length;
-    const hours = appointmentsCompleted.reduce((sum, appointment) => {
+    const hours = timesheets.reduce((sum, appointment) => {
       return sum + (appointment.duration || 0);
     }, 0);
     res.status(200).json({ completed, hours });

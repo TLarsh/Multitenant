@@ -49,8 +49,10 @@ var timesheetSchema = new mongoose.Schema({
 // timesheetSchema.pre("save", function(next) {
 //     if (this.clockIn && this.clockOut) {
 //         const duration_in_minutes = Math.round((this.clockOut - this.clockIn)) / (1000 * 60);
-//         this.duration = duration_in_minutes;
-//     }
+//         this.duration = duration_in_minutes/(1000 * 60 * 60);
+//     } else {
+//     this.duration = 0;
+// }
 // });
 
 //Export the model
