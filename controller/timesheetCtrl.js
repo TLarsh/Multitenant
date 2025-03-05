@@ -3,7 +3,9 @@ const { generateVisitationId } = require("../config/visitationId");
 const Appointment = require("../models/appointmentModel");
 const Timesheet = require("../models/timesheetModel");
 const sendNotification = require("../utils/firebase");
+const createLog = require("../utils/loggerCtrl");
 const { getFirestore } = require ("firebase-admin/firestore");
+const validateMongoDbId = require("../utils/validateMongoDbId");
 const User = require("../models/userModel");
 
 // Clock in by interpreter  =====================================================
@@ -11,28 +13,52 @@ const User = require("../models/userModel");
 const createTimesheet = asyncHandler(async(req, res) => {
     const {appointmentId, date} = req.body;
     const interpreterId = req.user.id;
-    console.log(interpreterId)
     try {
         const appointment = await Appointment.findOne({_id:appointmentId});
         const existingEntry = await Timesheet.findOne({ appointmentId: appointmentId, interpreter: interpreterId, clockOut: null });
         if (interpreterId.toString() !== appointment.interpreter.toString()) {
+            createLog(
+                interpreterId,
+                "Signin timesheet",
+                "failed",
+                `Signin timesheet failed to ${req.user.username}, not authorized`
+              );
+        
             return res.status(401).json({error:"Not authorized"})
         }
         if (existingEntry) {
+            createLog(
+                interpreterId,
+                "Signin timesheet",
+                "failed",
+                `Signin timesheet failed to ${req.user.username}, signed in already`
+              );
             return res.status(400).json({ message: "You have already clocked in for this appointment." });
         }
         const newTimesheet = await Timesheet.create({
             appointmentId,
             interpreter:interpreterId,
+            staff: appointment.staff,
+            client: appointment.client,
             visitationId: generateVisitationId(appointmentId),
             date : new Date(date),
             clockIn : new Date(),
         });
-        console.log(newTimesheet)
-        // await newTimesheet.save();
+        createLog(
+            interpreterId,
+            "Signin timesheet",
+            "success",
+            `${req.user.username}, signed timesheet for appointment with ID ${appointmentId}`
+          );
         res.status(201).json({message: "Timesheet successfully created", 
         timesheet: newTimesheet});
     } catch (error) {
+        createLog(
+            interpreterId,
+            "Signin timesheet",
+            "failed",
+            `Signin timesheet failed to ${req.user.username}`
+          );
         res.status(500).json({error:error.message});
     }
 });
@@ -79,7 +105,7 @@ const getTimesheets = async (req, res) => {
             startOfWeek.setHours(0, 0, 0, 0);
 
             const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setDate(startOfWeek.getDate() + 14);
             endOfWeek.setHours(23, 59, 59, 999);
 
             query.clockIn = { $gte: startOfWeek, $lt: endOfWeek };
@@ -100,7 +126,9 @@ const getTimesheets = async (req, res) => {
 
         // const timesheets = await Timesheet.find(query)
         const timesheets = await Timesheet.find(query)
-        .populate("interpreter", "_id role")
+        .populate("interpreter", "_id fullname username role")
+        .populate("staff", "_id fullname username role")
+        .populate("client", "_id fullname username role")
         .populate("appointmentId", "_id");
         
         res.json({ timesheets });
@@ -121,13 +149,33 @@ const clockOut = asyncHandler (async (req, res) => {
             return res.status(404).json({error:"Timesheet not found"});
         }
         if (timesheet.clockOut) {
+            createLog(
+                interpreterId,
+                "Timesheet clockout",
+                "failed",
+                `Timesheet clockout failed to ${req.user.username}, already clocked out.`
+              );
             return res.status(400).json({ message: "You have already clocked out." });
         }
+        // save changes in timesheet//
         timesheet.clockOut = new Date();
+        timesheet.reason = req.body.reason;
         timesheet.duration = Math.round((timesheet.clockOut - timesheet.clockIn) / (1000 * 60 * 60));
         await timesheet.save();
+        createLog(
+            interpreterId,
+            "Timesheet clockout",
+            "success",
+            `Timesheet clockout failed to ${req.user.username}, not authorized`
+          );
         res.status(200).json({message:"Clock-out time successfully updated", timesheet})
     } catch (error) {
+        createLog(
+            interpreterId,
+            "Timesheet clockout",
+            "failed",
+            `Timesheet clockout failed to ${req.user.username}.`
+          );
         res.status(500).json({error:error.message})
     }
 });
@@ -136,13 +184,68 @@ const clockOut = asyncHandler (async (req, res) => {
 
 const deleteTimesheet = asyncHandler(async(req, res) => {
     const {id} = req.params;
+    validateMongoDbId(id);
     try {
-        const deletedTimesheet = Timesheet.findByIdAndDelete(id);
-        res.status(200).json(deletedTmesheet);
+        const deletedTimesheet = await Timesheet.findByIdAndDelete(id);
+        createLog(
+            req.user._id,
+            "Delete timehseet",
+            "success",
+            `${req.user.username} successfully deleted a timesheet with ID ${id}`
+          );
+        res.status(200).json({message:"Timesheet deleted successfully", deletedTimesheet});
     } catch (error) {
-        throw new Error(error.message);
+        createLog(
+            req.user._id,
+            "Delete timehseet",
+            "failed",
+            `Delete timesheet failed to ${req.user.username}`
+          );
+        throw new Error(error);
     }
 });
+
+// ================ Approve timesheet ==================================
+
+const approveTimesheet = asyncHandler (async ( req, res ) => {
+    const { timesheetId } = req.params;
+    validateMongoDbId(timesheetId);
+    try {
+      findTimesheet = await Timesheet.findOne({_id:timesheetId});
+      if ( !findTimesheet ) return res.status(404).json("Timesheet not found");
+      const approvedTimesheet = await Timesheet.findByIdAndUpdate(
+        timesheetId,
+        {
+          status: "approved",
+        },
+        {new: true}
+      );
+      res.status(200).json({message: "Timesheet approved", approvedTimesheet});
+    } catch (error) {
+      throw new Error (error);
+    }
+  });
+
+  // ================ Reject timesheet ==================================
+  
+  const rejectTimesheet = asyncHandler (async ( req, res ) => {
+    const { timesheetId } = req.params;
+    validateMongoDbId(timesheetId);
+    try {
+      findTimesheet = await Timesheet.findOne({_id:timesheetId});
+      if ( !findTimesheet ) return res.status(404).json("Timesheet not found");
+      const rejectedTimesheet = await Timesheet.findByIdAndUpdate(
+        timesheetId,
+        {
+          status: "rejected",
+        },
+        {new: true}
+      );
+      res.status(200).json({message: "Timesheet rejected", rejectedTimesheet});
+    } catch (error) {
+      throw new Error (error);
+    }
+  });
 
 
 
@@ -234,6 +337,9 @@ module.exports = {
     createTimesheet,
     getTimesheets,
     clockOut,
+    deleteTimesheet,
+    approveTimesheet,
+    rejectTimesheet,
     sendClockInReminder,
     unreadMessages,
     markAsRead,

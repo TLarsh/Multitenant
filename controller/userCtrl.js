@@ -67,7 +67,8 @@ const loginUserCtrl = async (req, res) => {
                 token:generateToken(user._id),
                 user: {
                     id: user._id,
-                    name: user.name,
+                    username: user.username,
+                    fullname: user.fullname,
                     email: user.email,
                     role: user.role,
                 },

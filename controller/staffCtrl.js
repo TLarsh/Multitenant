@@ -2,23 +2,32 @@ const asyncHandler = require("express-async-handler");
 const Staff = require("../models/staffModel");
 const User = require("../models/userModel");
 const Appointment = require("../models/appointmentModel");
+const createLog = require("../utils/loggerCtrl");
+const { generateUniqueUsername, autoGenPassword } = require('../config/genUsernameAndPassCtrl');
 
 const addStaff = asyncHandler(async (req, res) => {
     try {
 
         const findUser = await User.findOne({email:req.body.email});
+        const username = await generateUniqueUsername(req.body.fullname);
+        const password = await autoGenPassword();
         if (!findUser) {
             const user = await User.create ({
                 ...req.body,
+                username,
+                password:password,
                 role : 'staff',
                 createdBy : req.user,
             });
-            res.status(201).json({messaeg:"Staff successfully added", role_details:user});
+            createLog(req.user._id, "Add a staff", "success", `${req.user.username} successfully added a new staff with ID ${user._id}`);
+            res.status(201).json({messaeg:`Staff successfully added, username is ${username} and password is ${password}`, role_details:user});
         } else {
+            createLog(req.user._id, "Add a staff", "failed", `Error adding staff, ${req.body.email} already exist`);
             res.status(403).json({error:"Staff already exist"});
         }
         
     } catch (error) {
+        createLog(req.user._id, "Add a staff", "failed", `Error adding staff.`);
         res.status(400).json(error.message);
     }
 });

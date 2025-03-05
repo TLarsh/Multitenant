@@ -1,25 +1,28 @@
 const asyncHandler = require("express-async-handler");
 const Client = require("../models/clientModel");
 const User = require("../models/userModel");
+const { generateUniqueUsername, autoGenPassword } = require('../config/genUsernameAndPassCtrl');
 
 // this api allows company admin to add client =========================================================
 const addClient = asyncHandler(async (req, res) => {
   try {
     const findUser = await User.findOne({ email: req.body.email });
+    const username = await generateUniqueUsername(req.body.fullname);
+    const password = await autoGenPassword();
     if (!findUser) {
       const user = await User.create({
         fullame: req.body.fullname,
-        username: req.body.username,
+        username,
         email: req.body.email,
         phone: req.body.phone,
-        password: req.body.password,
+        password: password,
         role: "client",
         createdBy: req.user,
       });
       createLog(req.user._id, "Add a client", "success", `${req.user.username} successfully added a new client with ID ${user._id}`);
       res
         .status(201)
-        .json({ messaeg: "Client successfully added", role_details: user });
+        .json({ messaeg: `Client successfully added. username is ${username} and password is ${password}`, role_details: user });
     } else {
       createLog(req.user._id, "Add a client", "failed", `Error adding client, ${req.body.email} already exist`);
       res.status(403).json({ error: "Client already exist" });

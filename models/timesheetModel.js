@@ -6,6 +6,12 @@ var timesheetSchema = new mongoose.Schema({
         ref: "User", 
         required: true 
     },
+    staff: { type: mongoose.Schema.Types.ObjectId, 
+        ref: "User", 
+    },
+    client: { type: mongoose.Schema.Types.ObjectId, 
+        ref: "User", 
+    },
     appointmentId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Appointment",
@@ -32,6 +38,11 @@ var timesheetSchema = new mongoose.Schema({
         type:Date,
         required:true,
         
+    },
+    status: {
+        type: String,
+        enum: ['submited', 'approved', 'rejected'],
+        default: 'submited'
     },
     
     duration:{

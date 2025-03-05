@@ -63,9 +63,13 @@ var appointmentSchema = new mongoose.Schema({
         default: null
     },
     time:{
-        type:String,
+        type:Date,
         required:true,
         
+    },
+    endTime: {
+        type: Date,
+        required: true
     },
     agreementForm:{
         type:String,   

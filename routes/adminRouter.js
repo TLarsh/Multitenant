@@ -4,6 +4,8 @@ const { authMiddleware, isAdmin, } = require('../middlewares/authMiddleware');
 const { createCompany, totalCompanies, getAllCompanies, getACompany, updateCompany, activateCompany, deactivateCompany, } = require('../controller/companyCtrl');
 const { getAcompanyLogs } = require('../controller/logCtrl');
 const { overallStaffAndInterpreter } = require('../controller/staffInterpreterCtrl');
+const { deleteAppointment } = require('../controller/appointmentCtrl');
+const { deleteTimesheet } = require('../controller/timesheetCtrl');
 
 
 
@@ -17,6 +19,8 @@ router.get('/logs', authMiddleware, isAdmin, getAcompanyLogs);
 router.put('/activate-company/:id', authMiddleware, isAdmin, activateCompany);
 router.put('/deactivate-company/:id', authMiddleware, isAdmin, deactivateCompany);
 router.get('/total-staffs-interpreters', authMiddleware, isAdmin, overallStaffAndInterpreter);
+router.delete('/delete-appointment/:id', authMiddleware, isAdmin, deleteAppointment);
+router.delete('/delete-timesheet/:id', authMiddleware, isAdmin, deleteTimesheet);
 
 
 

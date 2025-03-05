@@ -7,14 +7,26 @@ const User = require("../models/userModel");
 const cloudinary = require("../utils/cloudinary");
 const fs = require("fs");
 const createLog = require("../utils/loggerCtrl");
+const isConflictExist = require("../config/appointmentConflictDetector");
+const validateMongoDbId = require("../utils/validateMongoDbId");
 
 // creates appointment and lists the appointmens to the user appointments array ==================
 
 const createAppointment = asyncHandler(async (req, res) => {
   try {
+    const duration = req.body.duration;
+    const startTime = new Date(req.body.time);
+    const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
     const clientId = await User.findById(req.body.client);
     const interpreterId = await User.findById(req.body.interpreter);
     const staffId = await User.findById(req.body.staff);
+    console.log(duration, startTime, endTime);
+
+    const findConflict = await isConflictExist(interpreterId, staffId, clientId, startTime, endTime);
+    if (findConflict) {
+      return res.status(400).json({message: "Appointment conflicts!"});
+    }
+
     if (!clientId) {
       createLog(
         req.user._id,
@@ -42,8 +54,10 @@ const createAppointment = asyncHandler(async (req, res) => {
       );
       return res.status(400).json({ error: "Staff not found" });
     }
+    
     const newAppointment = new Appointment({
       ...req.body,
+      endTime,
       createdBy: req.user,
     });
 
@@ -81,6 +95,32 @@ const createAppointment = asyncHandler(async (req, res) => {
   }
 });
 
+// Delete Appointment =======================================
+
+const deleteAppointment = asyncHandler(async(req, res) => {
+  const {id} = req.params;
+  validateMongoDbId(id);
+  try {
+      const deletedAppointment = await Appointment.findByIdAndDelete(id);
+      createLog(
+        req.user._id,
+        "Delete appointment",
+        "success",
+        `${req.user.username} successfully deleted an appointment with ID ${id}`
+      );
+      res.status(200).json({message:"Appointment deleted successfully", deletedAppointment});
+  } catch (error) {
+    createLog(
+      req.user._id,
+      "Delete appointment",
+      "failed",
+      `Delete appointemnt failed to ${req.user.username}`
+    );
+    throw new Error(error);
+  }
+});
+
+
 // total appoinments to be seen by the super admin and company admin ===================
 
 const totalAppointments = asyncHandler(async (req, res) => {
@@ -116,8 +156,9 @@ const getClientAppointments = asyncHandler(async (req, res) => {
     }
 
     const appointments = await Appointment.find({ client: id })
-      .populate("interpreter", "username email")
-      .populate("client", "username email")
+      .populate("interpreter", "username fullname email")
+      .populate("staff", "username fullname email")
+      .populate("client", "username fullname email")
       .sort({ date: 1 });
     res.status(200).json({
       message: `Appointments for ${user.username}`,
@@ -143,8 +184,9 @@ const getInterpreterAppointments = asyncHandler(async (req, res) => {
     }
 
     const appointments = await Appointment.find({ interpreter: id })
-      .populate("interpreter", "username email")
-      .populate("client", "username email")
+    .populate("interpreter", "username fullname email")
+    .populate("staff", "username fullname email")
+    .populate("client", "username fullname email")
       .sort({ date: 1 });
     res.status(200).json({
       message: `Appointments for ${user.username}`,
@@ -212,8 +254,9 @@ const getUpcomingAppointments = asyncHandler(async (req, res) => {
         interpreter: user.id,
         date: { $gte: currentDate },
       })
-        .populate("interpreter", "username email")
-        .populate("client", "username")
+        .populate("interpreter", "username fullname email")
+        .populate("staff", "username fullname email")
+        .populate("client", "username fullname email")
         .sort("-date");
       res.status(200).json(upcomingAppointments);
     } else if (user.role === "client") {
@@ -222,8 +265,9 @@ const getUpcomingAppointments = asyncHandler(async (req, res) => {
         client: user.id,
         date: { $gte: currentDate },
       })
-        .populate("interpreter", "username email")
-        .populate("client", "username")
+        .populate("interpreter", "username fullname email")
+        .populate("staff", "username fullname email")
+        .populate("client", "username fullname email")
         .sort("-date");
       res.status(200).json(upcomingAppointments);
     }
@@ -238,24 +282,19 @@ const getUpcomingAppointments = asyncHandler(async (req, res) => {
 const getPastAppointments = asyncHandler(async (req, res) => {
   const user = req.user;
   try {
-    if (user.role === "interpreter") {
+    if (user.role === "interpreter" || user.role ==="staff" || user.role ==="client") {
       const currentDate = new Date();
       const pastAppointments = await Appointment.find({
-        interpreter: user.id,
+        $or : [
+          { interpreter: user._id },
+          { staff: user._id },
+          { client: user._id },
+        ],
         date: { $lt: currentDate },
       })
-        .populate("interpreter", "username email")
-        .populate("client", "username")
-        .sort("-date");
-      res.status(200).json(pastAppointments);
-    } else if (user.role === "client") {
-      const currentDate = new Date();
-      const pastAppointments = await Appointment.find({
-        client: user.id,
-        date: { $lt: currentDate },
-      })
-        .populate("interpreter", "username email")
-        .populate("client", "username")
+        .populate("interpreter", "username fullname email")
+        .populate("staff", "username fullname  email")
+        .populate("client", "username fullname email")
         .sort("-date");
       res.status(200).json(pastAppointments);
     }
@@ -275,15 +314,14 @@ const reshAppoint = asyncHandler(async (req, res) => {
 
   const appointment = await Appointment.findById(appointmentId);
   if (!appointment) {
-    return res.status(404).json({ error: "Appointment not found." });
     createLog(
       user._id,
       "Attempt to reschedule appointment",
       "failed",
       `${user} failed on an attempt to reschedule appointment, appointment not found.`
     );
+    return res.status(404).json({ error: "Appointment not found." });
   }
-  console.log({ apptIdInt: appointment });
   if (user.id.toString() === appointment.interpreter.toString()) {
     const appointment = await Appointment.findByIdAndUpdate(
       appointmentId,
@@ -458,10 +496,13 @@ const cancelAppointment = asyncHandler(async (req, res) => {
   }
 });
 
+// API retrieves a single applointment by it's ID ==========================
+
 const getAppointment = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoDbId(id);
   try {
-    const appointment = await Appointment.findBId(id);
+    const appointment = await Appointment.findById(id);
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ error: "Error fetching appointment." });
@@ -618,7 +659,7 @@ const countCompletedAppointment = asyncHandler(async (req, res) => {
 
 // ===========   APPOINTMENT SUMMARY   ===============
 
-// In daily summary, counts completed appointments and total hours =============================
+// In daily summary, API counts completed appointments and total hours =============================
 
 const getDailySummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -655,7 +696,7 @@ const getDailySummary = asyncHandler(async (req, res) => {
   }
 });
 
-// On monthly, summary, counts completed appointments and total hours =============================
+// On monthly, summary, API counts completed appointments and total hours =============================
 
 const getMonthlySummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -701,7 +742,7 @@ const getMonthlySummary = asyncHandler(async (req, res) => {
   }
 });
 
-// In bi-weekly summary, counts completed appointments and total hours =============================
+// In bi-weekly summary, API counts completed appointments and total hours =============================
 
 const getBiWeeklySummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -777,6 +818,7 @@ const getStatusSummary = asyncHandler(async (req, res) => {
 
 module.exports = {
   createAppointment,
+  deleteAppointment,
   totalAppointments,
   // interpreterAppointments,
   getInterpreterAppointments,
