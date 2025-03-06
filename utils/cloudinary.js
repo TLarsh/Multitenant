@@ -8,19 +8,21 @@ cloudinary.config({
     api_secret : process.env.API_SECRET,
 });
 
-// const cloudinaryUploadFile = async (fileToUploads) => {
-//     return new Promise ((resolve) => {
-//         cloudinary.uploader.upload(fileToUploads, (result) => {
-//             resolve(
-//                 {
-//                     url: result.secure_url,
-//                 },
-//                 {
-//                     resource_type: "auto",
-//                 }
-//             );
-//         });
-//     });
-// };
+const cloudinaryUploadImg = async (fileToUploads) => {
+    return new Promise ((resolve) => {
+        cloudinary.uploader.upload(fileToUploads, (result) => {
+            resolve(
+                {
+                    url: result.secure_url,
+                },
+                {
+                    resource_type: "auto",
+                }
+            );
+        });
+    });
+};
 
-module.exports = cloudinary ;
+
+
+module.exports = {cloudinary, cloudinaryUploadImg};

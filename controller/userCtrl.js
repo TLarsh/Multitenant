@@ -8,6 +8,8 @@ const logModel = require("../models/logModel");
 const sendEmail = require("./emailCtrl");
 const crypto = require('crypto');
 const createLog = require("../utils/loggerCtrl");
+const {cloudinary} = require("../utils/cloudinary");
+const fs = require("fs");
 
 // Create User ==================================================
 const createUser = asyncHandler( async(req, res) => {
@@ -70,6 +72,7 @@ const loginUserCtrl = async (req, res) => {
                     username: user.username,
                     fullname: user.fullname,
                     email: user.email,
+                    profileImage: user.profileImage,
                     role: user.role,
                 },
             });
@@ -102,7 +105,7 @@ const totalUsers = asyncHandler(async (req, res) => {
             active:activeUsers,
             inactive:inactiveUsers,
             total:users
-        })
+        });
 
     } catch(error) {
         // throw new Error(error)
@@ -314,10 +317,75 @@ const logout = asyncHandler(async(req, res) => {
 });
 
 
+// Update Profile Image ============================================
+
+const updateProfileImages = asyncHandler(async(req, res) => {
+    try {
+        const userId = req.user.id; // Assuming you use JWT middleware
+        const user = await User.findById(userId);
+        
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+
+        // Upload to Cloudinary
+        const imageUrl = await cloudinary.uploader.upload(req.file.path);
+
+        fs.unlinkSync(req.file.path);
+        // Update user profile image
+        user.profileImage = imageUrl.secure_url;
+        await user.save();
+
+        res.status(200).json({ message: "Profile image updated", user: user });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating profile image", error: error.message });
+    }
+});
+
+
+
+
+// const updateProfileImages = asyncHandler(async(req, res) => {
+//     const { id } = req.user._id;
+//     validateMongoDbId(id);
+//     console.log(req.files)
+//     try {
+//         const uploader = (path) => cloudinaryUploadImg(path, "image");
+//         const urls = [];
+//         const files = req.files; 
+//         for (const file of files) {
+//             const {path} = file;
+//             const newpath = await uploader(path);
+//             console.log(newpath);
+//             urls.set(newpath);
+//             console.log(file);
+//             fs.unlinkSync(path);
+//         }
+
+//         const findUser = await User.findByIdAndUpdate(
+//             id,
+//             {
+//                 profileImage : urls.map((file) => {
+//                 return file;
+//             }),
+//             },
+//             {
+//                 new : true,
+//             }
+//             );
+//             res.json(findUser)
+//     } catch (error) {
+//         throw new Error(error)
+//     }
+// });
+
+
+
 module.exports = { createUser, updatePassword, 
     loginUserCtrl, getaUser, getallUsers, 
     deleteaUser, updateaUser, activateUser, 
     deactivateUser, handleRefreshToken, 
     totalUsers, updateFcmToken, forgotPasswordToken,
-    resetPassword, logout,
+    resetPassword, logout, updateProfileImages,
 };
