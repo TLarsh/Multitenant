@@ -149,6 +149,7 @@ const updateaUser = asyncHandler (async (req, res) => {
     try {
         const updatedUser = await User.findByIdAndUpdate(id,{
             username : req.body.username,
+            fullname : req.body.fullname,
             email : req.body.email,
             phone : req.body.phone,
         }, {
