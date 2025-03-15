@@ -21,8 +21,11 @@ const createAppointment = asyncHandler(async (req, res) => {
     const interpreterId = await User.findById(req.body.interpreter);
     const staffId = await User.findById(req.body.staff);
     console.log(duration, startTime, endTime);
-
+   
+    console.log(interpreterId);
     const findConflict = await isConflictExist(interpreterId, staffId, clientId, startTime, endTime);
+    if (interpreterId.isActive === false) throw new Error(`${interpreterId.fullname} is currently inactive`);
+    if (staffId.isActive === false) throw new Error(`${staffId.fullname} is currently inactive`);
     if (findConflict) {
       return res.status(400).json({message: "Appointment conflicts!"});
     }
@@ -89,6 +92,7 @@ const createAppointment = asyncHandler(async (req, res) => {
       "failed",
       `Create appointment attempt failed to ${req.user.username}`
     );
+    console.error(error);
     res
       .status(400)
       .json({ message: "Error creating appointment", error: error.message });
@@ -199,6 +203,40 @@ const getInterpreterAppointments = asyncHandler(async (req, res) => {
   }
 });
 
+// Get appointments for any of the logged in user ===================
+
+const getAppointments = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  console.log(id);
+  try {
+    const user = await User.findById(id);
+    console.log(user);
+    if (!user) {
+      return res.json({ error: "User not found" });
+    }
+
+    const appointments = await Appointment.find({ 
+      $or: [
+        {interpreter: id},
+        {staff: id},
+        {client: id},
+      ],
+     })
+    .populate("interpreter", "username fullname email")
+    .populate("staff", "username fullname email")
+    .populate("client", "username fullname email")
+      .sort({ date: 1 });
+    res.status(200).json({
+      message: `Appointments for ${user.username}`,
+      appointments,
+    });
+    console.log(user);
+  } catch (error) {
+    res.status(500).json({ error: "Error retrieving appointment" });
+    // throw new Error(error)
+  }
+});
+
 // Rate appointment by the client ========================================
 
 const rateAppointment = asyncHandler(async (req, res) => {
@@ -248,10 +286,14 @@ const rateAppointment = asyncHandler(async (req, res) => {
 const getUpcomingAppointments = asyncHandler(async (req, res) => {
   const user = req.user;
   try {
-    if (user.role === "interpreter") {
+    if (user.role === "interpreter" || user.role === "staff" || user.role === "client") {
       const currentDate = new Date();
       const upcomingAppointments = await Appointment.find({
-        interpreter: user.id,
+        $or: [
+          {interpreter: user.id},
+          {staff: user.id},
+          {client: user.id},
+        ],
         date: { $gte: currentDate },
       })
         .populate("interpreter", "username fullname email")
@@ -259,18 +301,19 @@ const getUpcomingAppointments = asyncHandler(async (req, res) => {
         .populate("client", "username fullname email")
         .sort("-date");
       res.status(200).json(upcomingAppointments);
-    } else if (user.role === "client") {
-      const currentDate = new Date();
-      const upcomingAppointments = await Appointment.find({
-        client: user.id,
-        date: { $gte: currentDate },
-      })
-        .populate("interpreter", "username fullname email")
-        .populate("staff", "username fullname email")
-        .populate("client", "username fullname email")
-        .sort("-date");
-      res.status(200).json(upcomingAppointments);
-    }
+    } 
+    // else if (user.role === "client") {
+    //   const currentDate = new Date();
+    //   const upcomingAppointments = await Appointment.find({
+    //     client: user.id,
+    //     date: { $gte: currentDate },
+    //   })
+    //     .populate("interpreter", "username fullname email")
+    //     .populate("staff", "username fullname email")
+    //     .populate("client", "username fullname email")
+    //     .sort("-date");
+    //   res.status(200).json(upcomingAppointments);
+    // }
   } catch (error) {
     // throw new Error(error)
     res.status(400).json({ error: "Error retrieving upcoming appointments." });
@@ -826,6 +869,8 @@ module.exports = {
   getUpcomingAppointments,
   getPastAppointments,
   getClientAppointments,
+  getAppointment,
+  getAppointments,
   // rescheduleAppointment,
   markAsComplete,
   reshAppoint,

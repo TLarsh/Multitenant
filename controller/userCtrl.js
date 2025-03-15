@@ -109,7 +109,7 @@ const totalUsers = asyncHandler(async (req, res) => {
 
     } catch(error) {
         // throw new Error(error)
-        res.status(500).json({error:"Error finding total"})
+        res.status(500).json({error:"Error finding total"});
     }
 });
 
